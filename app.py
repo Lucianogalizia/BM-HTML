@@ -422,7 +422,7 @@ def flujo_d_cantidades():
         return render_template("flujo_d_cantidades.html", combos=combos, col=col)
 
 # ===================================
-# FLUJO E: Baja Varillas
+# FLUJO E: Baja Varilla
 # ===================================
 @app.route("/flujo_e", methods=["GET"])
 def flujo_e():
@@ -508,30 +508,48 @@ def flujo_e_filtros():
         final_df = df[final_condition]
         final_df_renombrado = renombrar_columnas(final_df)
         materiales_finales.append(("FLUJO E", final_df_renombrado))
-        return redirect(url_for("flujo_g"))
+        return redirect(url_for("flujo_f"))
     else:
         return render_template("flujo_e_filtros.html", selected_diametros=selected_diametros, filtros=filtros)
 
+@app.route("/flujo_e/cantidades", methods=["GET", "POST"])
+def flujo_e_cantidades():
+    diametros_str = request.args.get("diametros", "")
+    selected_diametros = diametros_str.split(",") if diametros_str else []
+    filtros_json = request.args.get("filtros", "{}")
+    selected_filters = json.loads(filtros_json)
+    try:
+        file_path = os.path.join(BASE_DIR, "baja varillas.xlsx")
+        df = pd.read_excel(file_path)
+        df.columns = df.columns.str.strip()
+    except Exception as e:
+        return f"Error al cargar el Excel: {e}"
+    if request.method == "POST":
+        quantities = {}
+        for diam in selected_diametros:
+            qty = request.form.get(f"qty_{diam}", type=float)
+            quantities[diam] = qty
+        # Filtrar el DataFrame según los DIÁMETRO seleccionados
+        filtered_df = df[df["DIÁMETRO"].isin(selected_diametros)]
+        for diam, qty in quantities.items():
+            mask = (filtered_df["DIÁMETRO"] == diam) & (filtered_df["4.CANTIDAD"].isna())
+            filtered_df.loc[mask, "4.CANTIDAD"] = qty
+        final_df_renombrado = renombrar_columnas(filtered_df)
+        materiales_finales.append(("FLUJO E", final_df_renombrado))
+        return redirect(url_for("flujo_g"))
+    else:
+        return render_template("flujo_e_cantidades.html", selected_diametros=selected_diametros)
+
 # ===================================
-# Dummy FLUJO F
+# Dummy FLUJO F y FLUJO G
 # ===================================
 @app.route("/flujo_f")
 def flujo_f():
     return "<h1>Flujo F: (Pendiente de implementación)</h1>"
 
-# ===================================
-# Dummy FLUJO G
-# ===================================
 @app.route("/flujo_g")
 def flujo_g():
-    return "<h1>Flujo G: (Pendiente de implementación)</h1>"
-
-# ===================================
-# FLUJO H: Mostrar Resultados Acumulados
-# ===================================
-@app.route("/flujo_h")
-def flujo_h():
-    resultado = "<h1>Flujo H: Resultados Acumulados</h1>"
+    resultado = "<h1>Flujo G: Resultados Acumulados</h1>"
     for flow, df in materiales_finales:
         resultado += f"<h2>{flow}</h2>" + df.to_html(classes='table table-bordered', index=False)
     return resultado
