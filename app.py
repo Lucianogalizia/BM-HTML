@@ -338,91 +338,9 @@ def flujo_c_cantidades():
 
 
 # ===================================
-# FLUJO D: Profundiza
+# FLUJO E: Baja Varilla (Completo)
 # ===================================
-@app.route("/flujo_d", methods=["GET"])
-def flujo_d():
-    return render_template("flujo_d.html")
-
-@app.route("/flujo_d/decidir", methods=["POST"])
-def flujo_d_decidir():
-    profundizar = request.form.get("profundizar")
-    if profundizar == "NO":
-        return redirect(url_for("flujo_e"))
-    elif profundizar == "SI":
-        return redirect(url_for("flujo_d_seleccion"))
-    else:
-        return "Selecciona una opción.", 400
-
-@app.route("/flujo_d/seleccion", methods=["GET", "POST"])
-def flujo_d_seleccion():
-    file_path = os.path.join(BASE_DIR, "profundiza.xlsx")
-    try:
-        df = pd.read_excel(file_path)
-        df.columns = df.columns.str.strip()
-        for col in df.columns:
-            if df[col].dtype == object:
-                df[col] = df[col].astype(str).str.strip()
-        # Reemplazar valores 'nan'
-        if 'TIPO' in df.columns:
-            df['TIPO'] = df['TIPO'].replace('nan', '').fillna('')
-        if 'DIÁMETRO CSG' in df.columns:
-            df['DIÁMETRO CSG'] = df['DIÁMETRO CSG'].replace('nan', '').fillna('')
-    except Exception as e:
-        return f"Error al cargar el Excel: {e}"
-    
-    # Elegir la columna a usar: si existe "DIÁMETRO", se usa; sino, "DIÁMETRO CSG"
-    if "DIÁMETRO" in df.columns:
-        col = "DIÁMETRO"
-    elif "DIÁMETRO CSG" in df.columns:
-        col = "DIÁMETRO CSG"
-    else:
-        return "La columna de DIÁMETRO no se encontró en el Excel."
-    
-    unique_values = sorted(df[col].dropna().unique().tolist())
-    if request.method == "POST":
-        selected = request.form.getlist("valores")
-        if not selected:
-            return "No se seleccionaron valores.", 400
-        selected_str = ",".join(selected)
-        # Redirigir a la página de ingreso de cantidades, pasando la columna y los valores seleccionados
-        return redirect(url_for("flujo_d_cantidades", valores=selected_str, col=col))
-    else:
-        return render_template("flujo_d_seleccion.html", unique_values=unique_values, col=col)
-
-@app.route("/flujo_d/cantidades", methods=["GET", "POST"])
-def flujo_d_cantidades():
-    valores_str = request.args.get("valores", "")
-    col = request.args.get("col", "")
-    selected_values = valores_str.split(",") if valores_str else []
-    file_path = os.path.join(BASE_DIR, "profundiza.xlsx")
-    try:
-        df = pd.read_excel(file_path)
-        df.columns = df.columns.str.strip()
-        for c in df.columns:
-            if df[c].dtype == object:
-                df[c] = df[c].astype(str).str.strip()
-    except Exception as e:
-        return f"Error al cargar el Excel: {e}"
-    if request.method == "POST":
-        quantities = {}
-        for val in selected_values:
-            qty = request.form.get(f"qty_{val}", type=float)
-            quantities[val] = qty
-        # Filtrar el DataFrame según la columna y los valores seleccionados
-        filtered_df = df[df[col].isin(selected_values)]
-        for val, qty in quantities.items():
-            mask = (filtered_df[col] == val) & (filtered_df["4.CANTIDAD"].isna())
-            filtered_df.loc[mask, "4.CANTIDAD"] = qty
-        final_df_renombrado = renombrar_columnas(filtered_df)
-        materiales_finales.append(("FLUJO D", final_df_renombrado))
-        return redirect(url_for("flujo_e"))
-    else:
-        # Preparar lista de valores para mostrar los campos de cantidad
-        combos = selected_values  # Cada valor seleccionado se usará para ingresar cantidad
-        return render_template("flujo_d_cantidades.html", combos=combos, col=col)
-
-# Renombramos la función de la página principal de Flujo E para evitar duplicación de endpoints.
+# Para evitar duplicidad de endpoints, renombramos la página principal de Flujo E como flujo_e_index
 @app.route("/flujo_e", methods=["GET"])
 def flujo_e_index():
     return render_template("flujo_e.html")
