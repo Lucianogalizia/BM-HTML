@@ -10,10 +10,10 @@
             <h3>Para DIÁMETRO: {{ diam }}</h3>
             <label>Selecciona uno o más TIPO:</label><br>
             <select name="tipo_{{ diam }}" multiple size="5">
-                {% for tipo in filtros[diam] %}
+                {% for tipo in filtros[diam].tipos %}
                     <option value="{{ tipo }}">{{ tipo }}</option>
                 {% endfor %}
-            </select><br><br>
+            </select>
             <label>GRADO DE ACERO:</label>
             <select name="acero_{{ diam }}">
                 {% for item in filtros[diam].acero %}
