@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Flujo C: Selección de TIPO</title>
+</head>
+<body>
+    <h1>Flujo C: Selección de TIPO</h1>
+    <form method="POST">
+        {% for diam in selected_diametros %}
+            <h3>Para DIÁMETRO: {{ diam }}</h3>
+            <p>Selecciona uno o más TIPO:</p>
+            <select name="tipo_{{ diam }}" multiple size="5">
+                {% for tipo in filtros[diam] %}
+                    <option value="{{ tipo }}">{{ tipo }}</option>
+                {% endfor %}
+            </select>
+            <hr>
+        {% endfor %}
+        <button type="submit">Continuar</button>
+    </form>
+</body>
+</html>
