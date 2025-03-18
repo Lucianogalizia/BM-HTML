@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Flujo D: Selección de Valores</title>
+</head>
+<body>
+    <h1>Flujo D: Selección de Valores para la columna "{{ col }}"</h1>
+    <form method="POST">
+        <p>Selecciona uno o más valores:</p>
+        <select name="valores" multiple size="5">
+            {% for val in unique_values %}
+                <option value="{{ val }}">{{ val }}</option>
+            {% endfor %}
+        </select><br><br>
+        <button type="submit">Confirmar Selección</button>
+    </form>
+</body>
+</html>
