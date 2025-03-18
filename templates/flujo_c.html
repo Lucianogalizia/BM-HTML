@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Flujo C: Tubería de Baja</title>
+</head>
+<body>
+    <h1>Flujo C: Tubería de Baja</h1>
+    <form action="{{ url_for('flujo_c_decidir') }}" method="POST">
+        <p>¿Baja Tubing?</p>
+        <input type="radio" name="baja_tubing" value="SI" required> SI<br>
+        <input type="radio" name="baja_tubing" value="NO"> NO<br><br>
+        <button type="submit">Continuar</button>
+    </form>
+</body>
+</html>
