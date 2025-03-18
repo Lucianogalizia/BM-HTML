@@ -4,10 +4,10 @@ import pandas as pd
 
 app = Flask(__name__)
 
-# Directorio donde se encuentran los Excel
+# Directorio donde se encuentran los archivos Excel
 BASE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "materiales")
 
-# Variable global para almacenar los resultados finales
+# Variable global para almacenar los DataFrames finales de cada flujo
 materiales_finales = []
 
 # Función auxiliar para renombrar columnas
@@ -24,30 +24,35 @@ def renombrar_columnas(df):
     columnas_presentes = [col for col in columnas if col in df_renombrado.columns]
     return df_renombrado[columnas_presentes]
 
-# Página de inicio
+# ----------------------------------
+# Página de Inicio
+# ----------------------------------
 @app.route("/")
 def index():
     return render_template("index.html")
 
-# --- Paso 1: Preguntar si se requiere Ajuste de Medida ---
+# ==================================
+# FLUJO A: Ajuste de medida
+# ==================================
+# Paso 1: Preguntar si se requiere ajuste de medida
 @app.route("/flujo_a", methods=["GET"])
 def flujo_a():
     return render_template("flujo_a_inicial.html")
 
-# --- Paso 2: Procesar respuesta inicial ---
+# Paso 2: Procesar la respuesta del Flujo A
 @app.route("/flujo_a/decidir", methods=["POST"])
 def flujo_a_decidir():
     ajuste = request.form.get("ajuste")
     if ajuste == "NO":
-        # Aquí se redirige a otro flujo (por ejemplo, flujo B)
-        return "Flujo A: Se respondió NO. (Aquí se redirigiría a flujo B)"
+        # Si se responde NO en el Flujo A, se pasa al Flujo B
+        return redirect(url_for("flujo_b"))
     elif ajuste == "SI":
-        # Si se responde SI, se pasa a la selección de DIÁMETRO
+        # Si se responde SI, se pasa a la selección de DIÁMETRO(s)
         return redirect(url_for("flujo_a_seleccion"))
     else:
         return "Por favor selecciona una opción.", 400
 
-# --- Paso 3: Selección de DIÁMETRO(s) ---
+# Paso 3: Selección de DIÁMETRO(s) en Flujo A
 @app.route("/flujo_a/seleccion", methods=["GET", "POST"])
 def flujo_a_seleccion():
     try:
@@ -55,23 +60,20 @@ def flujo_a_seleccion():
         df = pd.read_excel(file_path)
         df.columns = df.columns.str.strip()
         df["DIÁMETRO"] = df["DIÁMETRO"].astype(str).str.strip()
-        # Excluir "TODOS" si aparece
         unique_diametros = sorted([x for x in df["DIÁMETRO"].dropna().unique() if x.upper() != "TODOS"])
     except Exception as e:
         return f"Error al cargar el Excel: {e}"
-
+    
     if request.method == "POST":
         selected_diametros = request.form.getlist("diametros")
-        # Pasar la selección en la URL (se separan por coma)
         diametros_str = ",".join(selected_diametros)
         return redirect(url_for("flujo_a_filtros", diametros=diametros_str))
     else:
         return render_template("flujo_a_seleccion.html", unique_diametros=unique_diametros)
 
-# --- Paso 4: Mostrar filtros para cada DIÁMETRO seleccionado ---
+# Paso 4: Configuración de filtros en Flujo A
 @app.route("/flujo_a/filtros", methods=["GET", "POST"])
 def flujo_a_filtros():
-    # Recuperar los diámetros seleccionados (pasados como parámetro)
     diametros_str = request.args.get("diametros", "")
     selected_diametros = diametros_str.split(",") if diametros_str else []
     try:
@@ -82,15 +84,13 @@ def flujo_a_filtros():
     except Exception as e:
         return f"Error al cargar Excel: {e}"
     
-    # Para cada DIÁMETRO, obtener las opciones de filtros
+    # Para cada DIÁMETRO seleccionado, se calculan las opciones de filtro
     filtros = {}
     for diam in selected_diametros:
         subset = df[df["DIÁMETRO"] == diam]
-        # Opciones para TIPO (excluyendo "TODOS")
         tipos = sorted([x for x in subset["TIPO"].dropna().unique() if x.upper() != "TODOS"])
         if not tipos:
             tipos = ["TODOS"]
-        # Opciones para GRADO DE ACERO, GRADO DE ACERO CUPLA, TIPO DE CUPLA
         acero = sorted([x for x in subset["GRADO DE ACERO"].dropna().unique() if str(x).upper() != "TODOS"]) if "GRADO DE ACERO" in subset.columns else ["Seleccionar"]
         acero_cup = sorted([x for x in subset["GRADO DE ACERO CUPLA"].dropna().unique() if str(x).upper() != "TODOS"]) if "GRADO DE ACERO CUPLA" in subset.columns else ["Seleccionar"]
         tipo_cup = sorted([x for x in subset["TIPO DE CUPLA"].dropna().unique() if str(x).upper() != "TODOS"]) if "TIPO DE CUPLA" in subset.columns else ["Seleccionar"]
@@ -101,10 +101,8 @@ def flujo_a_filtros():
             "tipo_cup": tipo_cup if tipo_cup else ["Seleccionar"]
         }
     if request.method == "POST":
-        # Recoger filtros de cada DIÁMETRO
         all_filters = {}
         for diam in selected_diametros:
-            # Para TIPO, se espera selección múltiple
             tipo_sel = request.form.getlist(f"tipo_{diam}")
             if not tipo_sel:
                 tipo_sel = ["TODOS"]
@@ -122,7 +120,6 @@ def flujo_a_filtros():
                 "acero_cup_list": acero_cup_list,
                 "tipo_cup_list": tipo_cup_list
             }
-        # Aplicar los filtros a todo el DataFrame
         final_condition = pd.Series([False] * len(df))
         for diam_value, fdict in all_filters.items():
             temp_cond_diam = pd.Series([False] * len(df))
@@ -139,21 +136,92 @@ def flujo_a_filtros():
         final_df = df[final_condition]
         final_df_renombrado = renombrar_columnas(final_df)
         materiales_finales.append(("FLUJO A", final_df_renombrado))
-        # Para efectos de este ejemplo, redirigimos a flujo H (o se puede mostrar el resultado)
+        # Por este ejemplo, redirigimos a una ruta que muestra el resultado
         return redirect(url_for("flujo_h"))
     else:
-        # Mostrar el formulario de filtros
         return render_template("flujo_a_filtros.html", selected_diametros=selected_diametros, filtros=filtros)
 
-# --- Paso 5: Continuación (Flujo H: Material de agregación) ---
+# ==================================
+# FLUJO B: Saca Tubing
+# ==================================
+# Paso 1: Preguntar si se saca Tubing
+@app.route("/flujo_b", methods=["GET", "POST"])
+def flujo_b():
+    if request.method == "POST":
+        saca_tubing = request.form.get("saca_tubing")
+        if saca_tubing == "NO":
+            return redirect(url_for("flujo_c"))
+        elif saca_tubing == "SI":
+            return redirect(url_for("flujo_b_seleccion"))
+        else:
+            return "Por favor seleccione una opción.", 400
+    return render_template("flujo_b.html")
+
+# Paso 2: Selección de DIÁMETRO(s) para Saca Tubing
+@app.route("/flujo_b/seleccion", methods=["GET", "POST"])
+def flujo_b_seleccion():
+    try:
+        file_path = os.path.join(BASE_DIR, "saca tubing.xlsx")
+        df = pd.read_excel(file_path)
+        df.columns = df.columns.str.strip()
+        unique_diametros = sorted([d for d in df["DIÁMETRO"].dropna().unique() if d.upper() != "TODOS"])
+    except Exception as e:
+        return f"Error al cargar saca tubing: {e}"
+    
+    if request.method == "POST":
+        selected_diametros = request.form.getlist("diametros")
+        if not selected_diametros:
+            return "Por favor, seleccione al menos un DIÁMETRO.", 400
+        diametros_str = ",".join(selected_diametros)
+        return redirect(url_for("flujo_b_cantidades", diametros=diametros_str))
+    else:
+        return render_template("flujo_b_seleccion.html", unique_diametros=unique_diametros)
+
+# Paso 3: Ingreso de Cantidades para cada DIÁMETRO seleccionado
+@app.route("/flujo_b/cantidades", methods=["GET", "POST"])
+def flujo_b_cantidades():
+    diametros_str = request.args.get("diametros", "")
+    selected_diametros = diametros_str.split(",") if diametros_str else []
+    if request.method == "POST":
+        quantities = {}
+        for diam in selected_diametros:
+            qty = request.form.get(f"qty_{diam}", type=float)
+            quantities[diam] = qty
+        try:
+            file_path = os.path.join(BASE_DIR, "saca tubing.xlsx")
+            df = pd.read_excel(file_path)
+            df.columns = df.columns.str.strip()
+        except Exception as e:
+            return f"Error al cargar saca tubing: {e}"
+        df_filtered = df[(df["DIÁMETRO"].isin(selected_diametros)) | (df["DIÁMETRO"].str.upper() == "TODOS")].copy()
+        for diam, qty in quantities.items():
+            mask = (df_filtered["DIÁMETRO"] == diam) & (df_filtered["4.CANTIDAD"].isna())
+            df_filtered.loc[mask, "4.CANTIDAD"] = qty
+        df_filtered_renombrado = renombrar_columnas(df_filtered)
+        materiales_finales.append(("FLUJO B", df_filtered_renombrado))
+        return redirect(url_for("flujo_c"))
+    else:
+        return render_template("flujo_b_cantidades.html", selected_diametros=selected_diametros)
+
+# ==================================
+# Flujo C: (Dummy para redirección)
+# ==================================
+@app.route("/flujo_c")
+def flujo_c():
+    return "<h1>Flujo C: (Pendiente de implementación)</h1>"
+
+# ==================================
+# Flujo H: Mostrar Resultados (Continuación)
+# ==================================
 @app.route("/flujo_h")
 def flujo_h():
     resultado = "<h1>Continuación: Flujo H</h1>"
     for flow, df in materiales_finales:
         resultado += f"<h2>{flow}</h2>"
-        resultado += df.to_html(classes="table table-bordered", index=False)
+        resultado += df.to_html(classes='table table-bordered', index=False)
     return resultado
 
 if __name__ == "__main__":
     app.run(debug=True)
+
 
