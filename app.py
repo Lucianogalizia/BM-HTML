@@ -554,6 +554,13 @@ def flujo_g():
         resultado += f"<h2>{flow}</h2>" + df.to_html(classes='table table-bordered', index=False)
     return resultado
 
+@app.route("/flujo_h")
+def flujo_h():
+    resultado = "<h1>Flujo H: Resultados Acumulados</h1>"
+    for flow, df in materiales_finales:
+        resultado += f"<h2>{flow}</h2>" + df.to_html(classes='table table-bordered', index=False)
+    return resultado
+
 if __name__ == "__main__":
     app.run(debug=True)
 
