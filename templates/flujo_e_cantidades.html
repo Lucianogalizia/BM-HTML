@@ -6,9 +6,9 @@
 <body>
     <h1>Flujo E: Ingreso de Cantidades</h1>
     <form method="POST">
-        {% for diam, tipo in combos %}
-            <label>{{ diam }} - {{ tipo }}:</label>
-            <input type="number" name="qty_{{ diam }}_{{ tipo }}" step="any" required><br><br>
+        {% for diam in selected_diametros %}
+            <label>Cantidad para {{ diam }}:</label>
+            <input type="number" name="qty_{{ diam }}" step="any" required><br><br>
         {% endfor %}
         <button type="submit">Aplicar Cantidades y Continuar</button>
     </form>
