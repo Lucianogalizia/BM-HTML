@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Flujo C: Selección de DIÁMETRO CSG</title>
+</head>
+<body>
+    <h1>Flujo C: Selección de DIÁMETRO CSG</h1>
+    <form method="POST">
+        <p>Selecciona DIÁMETRO CSG:</p>
+        <select name="diacsg" required>
+            {% for csg in unique_csg %}
+                <option value="{{ csg }}">{{ csg }}</option>
+            {% endfor %}
+        </select><br><br>
+        <button type="submit">Continuar</button>
+    </form>
+</body>
+</html>
