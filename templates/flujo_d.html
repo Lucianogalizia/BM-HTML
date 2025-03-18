@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Flujo D: Profundiza</title>
+</head>
+<body>
+    <h1>Flujo D: Profundiza</h1>
+    <form action="{{ url_for('flujo_d_decidir') }}" method="POST">
+        <label>Profundizar:</label>
+        <select name="profundizar" required>
+            <option value="seleccionar">seleccionar</option>
+            <option value="SI">SI</option>
+            <option value="NO">NO</option>
+        </select><br><br>
+        <button type="submit">Continuar</button>
+    </form>
+</body>
+</html>
