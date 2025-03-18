@@ -1,1 +1,17 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Flujo B: Ingreso de Cantidades</title>
+</head>
+<body>
+    <h1>Flujo B: Ingreso de Cantidades</h1>
+    <form method="POST">
+        {% for diam in selected_diametros %}
+            <label>{{ diam }}:</label>
+            <input type="number" name="qty_{{ diam }}" step="any" required><br><br>
+        {% endfor %}
+        <button type="submit">Mostrar Tabla Final y Continuar</button>
+    </form>
+</body>
+</html>
 
