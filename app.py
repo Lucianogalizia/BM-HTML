@@ -422,33 +422,11 @@ def flujo_d_cantidades():
         combos = selected_values  # Cada valor seleccionado se usará para ingresar cantidad
         return render_template("flujo_d_cantidades.html", combos=combos, col=col)
 
-# ===================================
-# Dummy FLUJO E y FLUJO H
-# ===================================
-@app.route("/flujo_e")
-def flujo_e():
-    return "<h1>Flujo E: (Pendiente de implementación)</h1>"
-
-@app.route("/flujo_h")
-def flujo_h():
-    resultado = "<h1>Flujo H: Resultados Acumulados</h1>"
-    for flow, df in materiales_finales:
-        resultado += f"<h2>{flow}</h2>" + df.to_html(classes='table table-bordered', index=False)
-    return resultado
-
-if __name__ == "__main__":
-    app.run(debug=True)
-
-# ===================================
-# FLUJO E: Baja Varilla
-# ===================================
-
-# Paso 1: Pregunta inicial
+# Renombramos la función de la página principal de Flujo E para evitar duplicación de endpoints.
 @app.route("/flujo_e", methods=["GET"])
-def flujo_e():
+def flujo_e_index():
     return render_template("flujo_e.html")
 
-# Paso 2: Procesa la respuesta de baja varilla
 @app.route("/flujo_e/decidir", methods=["POST"])
 def flujo_e_decidir():
     baja_varilla = request.form.get("baja_varilla")
@@ -459,7 +437,6 @@ def flujo_e_decidir():
     else:
         return "Selecciona una opción.", 400
 
-# Paso 3: Selección de DIÁMETRO(s) desde "baja varillas.xlsx"
 @app.route("/flujo_e/seleccion", methods=["GET", "POST"])
 def flujo_e_seleccion():
     try:
@@ -479,7 +456,6 @@ def flujo_e_seleccion():
     else:
         return render_template("flujo_e_seleccion.html", unique_diametros=unique_diametros)
 
-# Paso 4: Configuración de Filtros para cada DIÁMETRO seleccionado
 @app.route("/flujo_e/filtros", methods=["GET", "POST"])
 def flujo_e_filtros():
     diametros_str = request.args.get("diametros", "")
@@ -491,15 +467,12 @@ def flujo_e_filtros():
         df["DIÁMETRO"] = df["DIÁMETRO"].astype(str).str.strip()
     except Exception as e:
         return f"Error al cargar el Excel: {e}"
-    # Para cada DIÁMETRO, obtener opciones de filtro
     filtros = {}
     for diam in selected_diametros:
         subset = df[df["DIÁMETRO"] == diam]
-        # Opciones para TIPO
         tipos = sorted([x for x in subset["TIPO"].dropna().unique() if x.upper() != "TODOS"])
         if not tipos:
             tipos = ["TODOS"]
-        # Opciones para GRADO DE ACERO, GRADO DE ACERO CUPLA, TIPO DE CUPLA
         acero = sorted([x for x in subset["GRADO DE ACERO"].dropna().unique() if str(x).upper() != "TODOS"]) if "GRADO DE ACERO" in subset.columns else ["Seleccionar"]
         acero_cup = sorted([x for x in subset["GRADO DE ACERO CUPLA"].dropna().unique() if str(x).upper() != "TODOS"]) if "GRADO DE ACERO CUPLA" in subset.columns else ["Seleccionar"]
         tipo_cup = sorted([x for x in subset["TIPO DE CUPLA"].dropna().unique() if str(x).upper() != "TODOS"]) if "TIPO DE CUPLA" in subset.columns else ["Seleccionar"]
@@ -520,13 +493,11 @@ def flujo_e_filtros():
             tipo_cup_list = ["TODOS"] if t_cup == "Seleccionar" else [t_cup, "TODOS"]
             all_filters[diam] = {"tipo_list": tipo_sel, "acero_list": acero_list,
                                  "acero_cup_list": acero_cup_list, "tipo_cup_list": tipo_cup_list}
-        # En lugar de aplicar los filtros directamente, redirigimos a la etapa de ingreso de cantidades.
         filters_json = json.dumps(all_filters)
         return redirect(url_for("flujo_e_cantidades", diametros=diametros_str, filtros=filters_json))
     else:
         return render_template("flujo_e_filtros.html", selected_diametros=selected_diametros, filtros=filtros)
 
-# Paso 5: Ingreso de Cantidades
 @app.route("/flujo_e/cantidades", methods=["GET", "POST"])
 def flujo_e_cantidades():
     diametros_str = request.args.get("diametros", "")
@@ -546,7 +517,6 @@ def flujo_e_cantidades():
             for tipo in all_filters.get(diam, {}).get("tipo_list", []):
                 qty = request.form.get(f"qty_{diam}_{tipo}", type=float)
                 quantities[(diam, tipo)] = qty
-        # Filtrar el DataFrame según los valores seleccionados
         final_condition = pd.Series([False]*len(df))
         for diam, fdict in all_filters.items():
             temp = pd.Series([False]*len(df))
@@ -563,7 +533,6 @@ def flujo_e_cantidades():
         materiales_finales.append(("FLUJO E", final_df_renombrado))
         return redirect(url_for("flujo_g"))
     else:
-        # Preparar la lista de combinaciones para mostrar los campos de cantidad
         combos = []
         for diam in selected_diametros:
             for tipo in all_filters.get(diam, {}).get("tipo_list", []):
