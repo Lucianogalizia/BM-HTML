@@ -75,7 +75,7 @@ def flujo_a_filtros():
     diametros_str = request.args.get("diametros", "")
     selected_diametros = diametros_str.split(",") if diametros_str else []
     try:
-        file_path = os.path.join(BASE_DIR, "ajuste de medida(2).xlsx")
+        file_path = os.path.join(BASE_DIR, "ajuste de medida.xlsx")
         df = pd.read_excel(file_path)
         df.columns = df.columns.str.strip()
         df["DIÁMETRO"] = df["DIÁMETRO"].astype(str).str.strip()
