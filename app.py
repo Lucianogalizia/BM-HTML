@@ -182,15 +182,18 @@ def flujo_b_cantidades():
 # ===================================
 # FLUJO C: Tubería de Baja
 # ===================================
+from flask import json  # (o usa json estándar)
+
 @app.route("/flujo_c", methods=["GET"])
 def flujo_c():
-    # Muestra la pregunta: ¿Baja Tubing?
+    # Muestra la página inicial del Flujo C (pregunta si baja tubing)
     return render_template("flujo_c.html")
 
 @app.route("/flujo_c/decidir", methods=["POST"])
 def flujo_c_decidir():
     baja = request.form.get("baja_tubing")
     if baja == "NO":
+        # Si el usuario responde NO, se continúa (por ejemplo, al Flujo D)
         return redirect(url_for("flujo_d"))
     elif baja == "SI":
         return redirect(url_for("flujo_c_seleccion"))
@@ -203,9 +206,11 @@ def flujo_c_seleccion():
         file_path = os.path.join(BASE_DIR, "baja tubing.xlsx")
         df = pd.read_excel(file_path)
         df.columns = df.columns.str.strip()
+        # Se extraen los DIÁMETRO únicos (excluyendo "TODOS")
         unique_diametros = sorted([x for x in df["DIÁMETRO"].dropna().unique() if x != "TODOS"])
     except Exception as e:
         return f"Error al cargar el Excel: {e}"
+    
     if request.method == "POST":
         selected = request.form.getlist("diametros")
         if not selected:
@@ -225,7 +230,7 @@ def flujo_c_tipo():
         df.columns = df.columns.str.strip()
     except Exception as e:
         return f"Error: {e}"
-    # Para cada DIÁMETRO, obtener opciones para TIPO
+    # Para cada DIÁMETRO, extraemos las opciones de TIPO (excluyendo "TODOS")
     filtros = {}
     for diam in selected_diametros:
         subset = df[df["DIÁMETRO"] == diam]
@@ -257,6 +262,7 @@ def flujo_c_diacsg():
         df.columns = df.columns.str.strip()
     except Exception as e:
         return f"Error: {e}"
+    # Se calcula la unión de los TIPO seleccionados, agregando "TODOS"
     union_tipos = set()
     for sel in selected_tipos_dict.values():
         if sel == ["TODOS"]:
@@ -267,10 +273,14 @@ def flujo_c_diacsg():
     diam_filter = ["TODOS"] if selected_diametros == ["TODOS"] else selected_diametros + ["TODOS"]
     df_filtered = df[df["DIÁMETRO"].isin(diam_filter) & df["TIPO"].isin(union_tipos)]
     unique_csg = sorted([x for x in df_filtered["DIÁMETRO CSG"].dropna().unique() if x != "TODOS"])
+    if not unique_csg:
+        # Si no hay valores para DIÁMETRO CSG, se continúa automáticamente usando "TODOS"
+        return redirect(url_for("flujo_c_cantidades", diametros=diametros_str, tipos=tipos_json, diacsg="TODOS"))
     if request.method == "POST":
         selected_csg = request.form.get("diacsg")
         if not selected_csg:
             selected_csg = "TODOS"
+        # Se fuerza el filtrado: si se selecciona un valor, se usa [valor, "TODOS"]
         return redirect(url_for("flujo_c_cantidades", diametros=diametros_str, tipos=tipos_json, diacsg=selected_csg))
     else:
         return render_template("flujo_c_diacsg.html", unique_csg=unique_csg)
@@ -281,6 +291,7 @@ def flujo_c_cantidades():
     selected_diametros = diametros_str.split(",") if diametros_str else []
     tipos_json = request.args.get("tipos", "{}")
     selected_tipos_dict = json.loads(tipos_json)
+    # Aquí se recibe el valor seleccionado en DIÁMETRO CSG; se utiliza para filtrar
     diacsg = request.args.get("diacsg", "TODOS")
     try:
         file_path = os.path.join(BASE_DIR, "baja tubing.xlsx")
@@ -294,14 +305,23 @@ def flujo_c_cantidades():
             for tipo in selected_tipos_dict.get(diam, []):
                 qty = request.form.get(f"qty_{diam}_{tipo}", type=float)
                 quantities[(diam, tipo)] = qty
+        # Ahora, se aplica el filtrado incluyendo DIÁMETRO, TIPO y DIÁMETRO CSG
         for (diam, tipo), qty in quantities.items():
-            condition = (df["DIÁMETRO"].isin([diam, "TODOS"]) & df["TIPO"].isin([tipo, "TODOS"]))
+            condition = (
+                df["DIÁMETRO"].isin([diam, "TODOS"]) &
+                df["TIPO"].isin([tipo, "TODOS"]) &
+                df["DIÁMETRO CSG"].isin([diacsg, "TODOS"])
+            )
             df.loc[condition & df["4.CANTIDAD"].isna(), "4.CANTIDAD"] = qty
         final_condition = pd.Series([False]*len(df))
-        for diam, fdict in selected_tipos_dict.items():
+        for diam_value, fdict in selected_tipos_dict.items():
             temp = pd.Series([False]*len(df))
-            for tipo in fdict:
-                cond = (df["DIÁMETRO"].isin([diam, "TODOS"]) & df["TIPO"].isin([tipo, "TODOS"]))
+            for tipo_val in fdict:
+                cond = (
+                    df["DIÁMETRO"].isin([diam_value, "TODOS"]) &
+                    df["TIPO"].isin([tipo_val, "TODOS"]) &
+                    df["DIÁMETRO CSG"].isin([diacsg, "TODOS"])
+                )
                 temp = temp | cond
             final_condition = final_condition | temp
         final_df = df[final_condition]
@@ -309,11 +329,13 @@ def flujo_c_cantidades():
         materiales_finales.append(("FLUJO C", final_df_renombrado))
         return redirect(url_for("flujo_d"))
     else:
+        # Prepara una lista de combinaciones para mostrar los campos de cantidad
         combos = []
         for diam in selected_diametros:
             for tipo in selected_tipos_dict.get(diam, []):
                 combos.append((diam, tipo))
         return render_template("flujo_c_cantidades.html", combos=combos)
+
 
 # ===================================
 # Dummy FLUJO D
