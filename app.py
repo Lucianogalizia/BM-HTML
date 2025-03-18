@@ -58,7 +58,7 @@ def flujo_a():
     else:
         # Método GET: carga los valores únicos de DIÁMETRO para mostrarlos en el formulario
         try:
-            file_path = os.path.join(BASE_DIR, "ajuste de medida(2).xlsx")
+            file_path = os.path.join(BASE_DIR, "ajuste de medida.xlsx")
             df = pd.read_excel(file_path)
             df.columns = df.columns.str.strip()
             unique_diametros = sorted(df["DIÁMETRO"].dropna().unique().tolist())
