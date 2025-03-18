@@ -5,7 +5,7 @@ import pandas as pd
 app = Flask(__name__)
 
 # Directorio donde se encuentran los Excel
-BASE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "Materiales")
+BASE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "materiales")
 
 # Variable global para almacenar los resultados finales
 materiales_finales = []
@@ -51,7 +51,7 @@ def flujo_a_decidir():
 @app.route("/flujo_a/seleccion", methods=["GET", "POST"])
 def flujo_a_seleccion():
     try:
-        file_path = os.path.join(BASE_DIR, "ajuste de medida(2).xlsx")
+        file_path = os.path.join(BASE_DIR, "ajuste de medida.xlsx")
         df = pd.read_excel(file_path)
         df.columns = df.columns.str.strip()
         df["DIÁMETRO"] = df["DIÁMETRO"].astype(str).str.strip()
