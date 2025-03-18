@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Flujo A: Ajuste de medida</title>
+</head>
+<body>
+    <h1>Flujo A: Ajuste de medida</h1>
+    <form method="POST" action="{{ url_for('flujo_a_decidir') }}">
+        <p>¿Ajuste de medida?</p>
+        <input type="radio" name="ajuste" value="SI" required> SI<br>
+        <input type="radio" name="ajuste" value="NO"> NO<br><br>
+        <button type="submit">Enviar</button>
+    </form>
+</body>
+</html>
