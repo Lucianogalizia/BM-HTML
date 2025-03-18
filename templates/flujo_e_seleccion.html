@@ -6,7 +6,7 @@
 <body>
     <h1>Flujo E: Selección de DIÁMETRO</h1>
     <form method="POST">
-        <p>Selecciona uno o más DIÁMETRO:</p>
+        <label>Selecciona uno o más DIÁMETRO:</label><br>
         <select name="diametros" multiple size="5">
             {% for diam in unique_diametros %}
                 <option value="{{ diam }}">{{ diam }}</option>
@@ -16,4 +16,5 @@
     </form>
 </body>
 </html>
+
 
