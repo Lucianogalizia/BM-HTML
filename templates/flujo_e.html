@@ -7,10 +7,14 @@
     <h1>Flujo E: Baja Varilla</h1>
     <form action="{{ url_for('flujo_e_decidir') }}" method="POST">
         <label>¿Baja Varilla?</label><br>
-        <input type="radio" name="baja_varilla" value="SI" required> SI<br>
-        <input type="radio" name="baja_varilla" value="NO"> NO<br><br>
+        <select name="baja_varilla" required>
+            <option value="">Seleccione opción</option>
+            <option value="SI">SI</option>
+            <option value="NO">NO</option>
+        </select><br><br>
         <button type="submit">Continuar</button>
     </form>
 </body>
 </html>
+
 
