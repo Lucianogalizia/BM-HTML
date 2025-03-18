@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Flujo D: Ingreso de Cantidades</title>
+</head>
+<body>
+    <h1>Flujo D: Ingreso de Cantidades para la columna "{{ col }}"</h1>
+    <form method="POST">
+        {% for val in combos %}
+            <label>{{ val }}:</label>
+            <input type="number" name="qty_{{ val }}" step="any" required><br><br>
+        {% endfor %}
+        <button type="submit">Aplicar Cantidades y Continuar</button>
+    </form>
+</body>
+</html>
