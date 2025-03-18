@@ -10,34 +10,35 @@
             <h3>Para DIÁMETRO: {{ diam }}</h3>
             <label>Selecciona uno o más TIPO:</label><br>
             <select name="tipo_{{ diam }}" multiple size="5">
-                {% for tipo in filtros[diam].tipos %}
+                {% for tipo in filtros[diam] %}
                     <option value="{{ tipo }}">{{ tipo }}</option>
                 {% endfor %}
             </select><br><br>
             <label>GRADO DE ACERO:</label>
             <select name="acero_{{ diam }}">
-                {% for val in filtros[diam].acero %}
-                    <option value="{{ val }}">{{ val }}</option>
+                {% for item in filtros[diam].acero %}
+                    <option value="{{ item }}">{{ item }}</option>
                 {% endfor %}
             </select><br><br>
             <label>GRADO DE ACERO CUPLA:</label>
             <select name="acero_cup_{{ diam }}">
-                {% for val in filtros[diam].acero_cup %}
-                    <option value="{{ val }}">{{ val }}</option>
+                {% for item in filtros[diam].acero_cup %}
+                    <option value="{{ item }}">{{ item }}</option>
                 {% endfor %}
             </select><br><br>
             <label>TIPO DE CUPLA:</label>
             <select name="tipo_cup_{{ diam }}">
-                {% for val in filtros[diam].tipo_cup %}
-                    <option value="{{ val }}">{{ val }}</option>
+                {% for item in filtros[diam].tipo_cup %}
+                    <option value="{{ item }}">{{ item }}</option>
                 {% endfor %}
             </select><br><br>
             <hr>
         {% endfor %}
-        <button type="submit">Aplicar Filtros y Continuar</button>
+        <button type="submit">Aplicar Filtros</button>
     </form>
 </body>
 </html>
+
 
 
 
