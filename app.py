@@ -675,7 +675,7 @@ def flujo_h_seleccion():
     try:
         df_H = pd.read_excel(file_path_H)
         df_H.columns = df_H.columns.str.strip()
-        # Si no existe la columna "4.CANTIDAD", se crea con valor 0 (como en el código original)
+        # Si no existe la columna "4.CANTIDAD", se crea con 0
         if "4.CANTIDAD" not in df_H.columns:
             df_H["4.CANTIDAD"] = 0
         else:
@@ -683,12 +683,12 @@ def flujo_h_seleccion():
     except Exception as e:
         return f"Error al cargar el Excel: {e}"
     
-    # Se obtiene la lista de materiales (columna "2. MATERIAL")
+    # Extraer la lista de materiales de la columna "2. MATERIAL"
     if "2. MATERIAL" in df_H.columns:
         materiales = df_H["2. MATERIAL"].astype(str).unique().tolist()
     else:
         materiales = []
-    # Opcional: generar la tabla HTML para visualizar el Excel
+    # Se genera la tabla HTML para que el usuario la consulte (opcional)
     df_html = df_H.to_html(classes="table table-bordered", index=False)
     if request.method == "POST":
         seleccionados = request.form.getlist("materiales")
@@ -707,31 +707,29 @@ def flujo_h_cantidades():
     try:
         df_H = pd.read_excel(file_path_H)
         df_H.columns = df_H.columns.str.strip()
-        # Crear o convertir la columna "4.CANTIDAD" a numérico
+        # Crear o convertir la columna "4.CANTIDAD"
         if "4.CANTIDAD" not in df_H.columns:
             df_H["4.CANTIDAD"] = 0
         else:
             df_H["4.CANTIDAD"] = pd.to_numeric(df_H["4.CANTIDAD"], errors="coerce")
     except Exception as e:
         return f"Error al cargar el Excel: {e}"
-    
     if request.method == "POST":
         quantities = {}
         for mat in seleccionados:
-            # Se espera que el usuario ingrese cantidad solo para materiales específicos (no para "TODOS")
             qty = request.form.get(f"qty_{mat}", type=float)
-            quantities[mat] = qty if qty is not None else 0
-        # Actualizamos el DataFrame: para cada material seleccionado, asignamos la cantidad donde 4.CANTIDAD es nulo o 0
+            quantities[mat] = qty
+        # Actualizamos el DataFrame: para cada material seleccionado, asignar la cantidad en filas sin valor
         for mat, qty in quantities.items():
             mask = (df_H["2. MATERIAL"].astype(str) == mat) & ((df_H["4.CANTIDAD"].isna()) | (df_H["4.CANTIDAD"] <= 0))
             df_H.loc[mask, "4.CANTIDAD"] = qty
-        # Filtramos solo los materiales con cantidad mayor a 0
-        assigned_df = df_H[(df_H["2. MATERIAL"].astype(str).isin(seleccionados)) & (df_H["4.CANTIDAD"] > 0)]
+        # Filtramos solo los materiales con cantidad mayor que 0
+        assigned_df = df_H[df_H["2. MATERIAL"].astype(str).isin(seleccionados) & (df_H["4.CANTIDAD"] > 0)]
         if not assigned_df.empty:
             assigned_df_renombrado = renombrar_columnas(assigned_df)
+            # Guardamos el resultado del Flujo H en la variable global
             materiales_finales.append(("FLUJO H", assigned_df_renombrado))
         else:
-            # Si no se asignó cantidad mayor a 0, no se añade a materiales_finales
             print("No se asignaron cantidades (o todas fueron 0).")
         return redirect(url_for("flujo_final"))
     else:
@@ -739,6 +737,9 @@ def flujo_h_cantidades():
             return "No se encontraron materiales seleccionados.", 400
         return render_template("flujo_h_cantidades.html", materiales=seleccionados)
 
+# ===================================
+# FLUJO FINAL: Resultados Consolidados
+# ===================================
 @app.route("/flujo_final", methods=["GET"])
 def flujo_final():
     return render_template("flujo_final.html", materiales_finales=materiales_finales)
