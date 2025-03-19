@@ -471,15 +471,12 @@ def flujo_e_filtros():
     filtros = {}
     for diam in selected_diametros:
         subset = df[df["DIÁMETRO"] == diam]
-        # Para TIPO, iteramos y asignamos solo los valores (excluyendo "TODOS")
         tipos = sorted([x for x in subset["TIPO"].dropna().unique() if x.upper() != "TODOS"])
         if not tipos:
             tipos = ["TODOS"]
-        # Para los otros filtros, se asignan según corresponda
         acero = sorted([x for x in subset["GRADO DE ACERO"].dropna().unique() if str(x).upper() != "TODOS"]) if "GRADO DE ACERO" in subset.columns else ["Seleccionar"]
         acero_cup = sorted([x for x in subset["GRADO DE ACERO CUPLA"].dropna().unique() if str(x).upper() != "TODOS"]) if "GRADO DE ACERO CUPLA" in subset.columns else ["Seleccionar"]
         tipo_cup = sorted([x for x in subset["TIPO DE CUPLA"].dropna().unique() if str(x).upper() != "TODOS"]) if "TIPO DE CUPLA" in subset.columns else ["Seleccionar"]
-        # Aquí, importante: para el select de TIPO debemos enviar filtros[diam].tipos
         filtros[diam] = {"tipos": tipos, "acero": acero, "acero_cup": acero_cup, "tipo_cup": tipo_cup}
     if request.method == "POST":
         all_filters = {}
@@ -497,9 +494,21 @@ def flujo_e_filtros():
             tipo_cup_list = ["TODOS"] if t_cup == "Seleccionar" else [t_cup, "TODOS"]
             all_filters[diam] = {"tipo_list": tipo_sel, "acero_list": acero_list,
                                  "acero_cup_list": acero_cup_list, "tipo_cup_list": tipo_cup_list}
-        # En lugar de redirigir a flujo_f, redirigimos a la etapa de cantidades
-        filtros_json = json.dumps(all_filters)
-        return redirect(url_for("flujo_e_cantidades", diametros=diametros_str, filtros=filtros_json))
+        final_condition = pd.Series([False]*len(df))
+        for diam_value, fdict in all_filters.items():
+            temp = pd.Series([False]*len(df))
+            for tipo_val in fdict["tipo_list"]:
+                cond = (df["DIÁMETRO"].isin([diam_value, "TODOS"]) &
+                        df["TIPO"].isin([tipo_val, "TODOS"]) &
+                        df["GRADO DE ACERO"].isin(fdict["acero_list"]) &
+                        df["GRADO DE ACERO CUPLA"].isin(fdict["acero_cup_list"]) &
+                        df["TIPO DE CUPLA"].isin(fdict["tipo_cup_list"]))
+                temp = temp | cond
+            final_condition = final_condition | temp
+        final_df = df[final_condition]
+        final_df_renombrado = renombrar_columnas(final_df)
+        materiales_finales.append(("FLUJO E", final_df_renombrado))
+        return redirect(url_for("flujo_e_cantidades"))
     else:
         return render_template("flujo_e_filtros.html", selected_diametros=selected_diametros, filtros=filtros)
 
@@ -507,8 +516,6 @@ def flujo_e_filtros():
 def flujo_e_cantidades():
     diametros_str = request.args.get("diametros", "")
     selected_diametros = diametros_str.split(",") if diametros_str else []
-    filtros_json = request.args.get("filtros", "{}")
-    selected_filters = json.loads(filtros_json)  # Aunque no se use en este endpoint, lo podemos mantener
     try:
         file_path = os.path.join(BASE_DIR, "baja varillas.xlsx")
         df = pd.read_excel(file_path)
@@ -531,7 +538,7 @@ def flujo_e_cantidades():
         return render_template("flujo_e_cantidades.html", selected_diametros=selected_diametros)
 
 # ===================================
-# Dummy FLUJO F y FLUJO G (Resultados)
+# Dummy FLUJO F y FLUJO G
 # ===================================
 @app.route("/flujo_f")
 def flujo_f():
@@ -543,6 +550,7 @@ def flujo_g():
     for flow, df in materiales_finales:
         resultado += f"<h2>{flow}</h2>" + df.to_html(classes='table table-bordered', index=False)
     return resultado
+
 
 @app.route("/flujo_h")
 def flujo_h():
