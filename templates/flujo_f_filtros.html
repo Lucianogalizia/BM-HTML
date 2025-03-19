@@ -8,13 +8,13 @@
     <form method="POST">
         <label>Selecciona DIÁMETRO:</label><br>
         <select name="diametros" multiple size="6">
-            {% for diam in unique_diametros %}
+            {% for diam in opciones_diam %}
                 <option value="{{ diam }}">{{ diam }}</option>
             {% endfor %}
         </select><br><br>
         <label>Selecciona DIÁMETRO CSG:</label><br>
         <select name="diacsg" required>
-            {% for csg in unique_diametros_csg %}
+            {% for csg in opciones_diacsg %}
                 <option value="{{ csg }}">{{ csg }}</option>
             {% endfor %}
         </select><br><br>
@@ -22,4 +22,5 @@
     </form>
 </body>
 </html>
+
 
