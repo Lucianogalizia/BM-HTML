@@ -577,33 +577,45 @@ def flujo_f_filtros():
         return "La columna 'DIÁMETRO' no se encontró en el Excel."
     if "DIÁMETRO CSG" not in df.columns:
         return "La columna 'DIÁMETRO CSG' no se encontró en el Excel."
-    # Construir opciones únicas
-    unique_diametros = list(df["DIÁMETRO"].dropna().unique())
-    if "TODOS" not in unique_diametros:
-        unique_diametros.insert(0, "TODOS")
+    # Construir opciones únicas (internamente se añade "TODOS")
+    all_diametros = list(df["DIÁMETRO"].dropna().unique())
+    if "TODOS" not in all_diametros:
+        all_diametros.insert(0, "TODOS")
     else:
-        unique_diametros.remove("TODOS")
-        unique_diametros.insert(0, "TODOS")
-    unique_diametros_csg = list(df["DIÁMETRO CSG"].dropna().unique())
-    if "TODOS" not in unique_diametros_csg:
-        unique_diametros_csg.insert(0, "TODOS")
+        all_diametros.remove("TODOS")
+        all_diametros.insert(0, "TODOS")
+    all_diametros_csg = list(df["DIÁMETRO CSG"].dropna().unique())
+    if "TODOS" not in all_diametros_csg:
+        all_diametros_csg.insert(0, "TODOS")
     else:
-        unique_diametros_csg.remove("TODOS")
-        unique_diametros_csg.insert(0, "TODOS")
+        all_diametros_csg.remove("TODOS")
+        all_diametros_csg.insert(0, "TODOS")
+    # Para mostrar en el template, removemos "TODOS"
+    display_diametros = [d for d in all_diametros if d != "TODOS"]
+    display_diametros_csg = [c for c in all_diametros_csg if c != "TODOS"]
+
     if request.method == "POST":
+        # Obtenemos la selección del usuario; si no selecciona nada, se usa "TODOS" por defecto
         selected_diametros = request.form.getlist("diametros")
+        if not selected_diametros:
+            selected_diametros = ["TODOS"]
+        else:
+            # Para el filtrado interno, agregamos "TODOS" a la lista seleccionada
+            selected_diametros.append("TODOS")
         selected_diametro_csg = request.form.get("diacsg")
-        # Aplicar los filtros en cascada (aunque aquí se hace en el POST)
+        if not selected_diametro_csg:
+            selected_diametro_csg = "TODOS"
+        # Se aplica el filtrado en cascada (en este caso se usa una función helper "filter_by_todos")
         filtered_df = df.copy()
         filtered_df = filter_by_todos(filtered_df, "DIÁMETRO", selected_diametros)
         filtered_df = filter_by_todos(filtered_df, "DIÁMETRO CSG", [selected_diametro_csg])
-        # Preparar un diccionario con las selecciones para pasarlo en query string
+        # Se preparan los parámetros para pasar a la siguiente etapa
         filtros = {"diametros": selected_diametros, "diacsg": selected_diametro_csg}
         filtros_json = json.dumps(filtros)
         diametros_str = ",".join(selected_diametros)
         return redirect(url_for("flujo_f_cantidades", diametros=diametros_str, filtros=filtros_json))
     else:
-        return render_template("flujo_f_filtros.html", unique_diametros=unique_diametros, unique_diametros_csg=unique_diametros_csg)
+        return render_template("flujo_f_filtros.html", unique_diametros=display_diametros, unique_diametros_csg=display_diametros_csg)
 
 # Página para que el usuario ingrese las cantidades en Flujo F
 @app.route("/flujo_f/cantidades", methods=["GET", "POST"])
