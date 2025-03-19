@@ -630,12 +630,27 @@ def flujo_f_cantidades():
         return render_template("flujo_f_cantidades.html", selected_diametros=display_diametros)
 
 
-@app.route("/flujo_g")
+@app.route("/flujo_g", methods=["GET", "POST"])
 def flujo_g():
-    resultado = "<h1>Flujo G: Resultados Acumulados</h1>"
-    for flow, df in materiales_finales:
-        resultado += f"<h2>{flow}</h2>" + df.to_html(classes='table table-bordered', index=False)
-    return resultado
+    if request.method == "POST":
+        wo = request.form.get("wo")
+        if wo == "SI":
+            file_path = os.path.join(BASE_DIR, "WO.xlsx")
+            try:
+                df = pd.read_excel(file_path)
+            except Exception as e:
+                return f"Error al cargar Excel: {e}"
+            df_renombrado = renombrar_columnas(df)
+            materiales_finales.append(("FLUJO G", df_renombrado))
+            message = "Lista de materiales:"
+            return render_template("flujo_g_result.html", message=message, df=df_renombrado)
+        elif wo == "NO":
+            message = "No se mostrarán los materiales."
+            return render_template("flujo_g_result.html", message=message, df=None)
+        else:
+            return "Selecciona una opción.", 400
+    else:
+        return render_template("flujo_g.html")
 
 @app.route("/flujo_h")
 def flujo_h():
