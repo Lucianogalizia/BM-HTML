@@ -514,6 +514,7 @@ def flujo_e_cantidades():
         df = pd.read_excel(file_path)
         df.columns = df.columns.str.strip()
         # Convertir la columna "4.CANTIDAD" a numérico; las celdas vacías se convierten en NaN
+        df["DIÁMETRO"] = df["DIÁMETRO"].astype(str).str.strip()  # Agrega esta línea
         df["4.CANTIDAD"] = pd.to_numeric(df["4.CANTIDAD"], errors="coerce")
     except Exception as e:
         return f"Error al cargar el Excel: {e}"
