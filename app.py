@@ -556,7 +556,7 @@ def flujo_e_cantidades():
             if "GRADO DE ACERO CUPLA" in subset.columns and filtros_diam.get("acero_cup_list"):
                 subset = subset[subset["GRADO DE ACERO CUPLA"].isin(filtros_diam["acero_cup_list"])]
             if "TIPO DE CUPLA" in subset.columns and filtros_diam.get("tipo_cup_list"):
-        subset = subset[subset["TIPO DE CUPLA"].isin(filtros_diam["tipo_cup_list"])]
+                subset = subset[subset["TIPO DE CUPLA"].isin(filtros_diam["tipo_cup_list"])]
 
         filtered_df = pd.concat([filtered_df, subset])
     
