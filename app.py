@@ -509,14 +509,14 @@ def flujo_e_cantidades():
     diametros_str = request.args.get("diametros", "")
     selected_diametros = diametros_str.split(",") if diametros_str else []
     # Los filtros ya se han aplicado para mostrar los DIÁMETRO; aquí simplemente solicitamos cantidades
-try:
-    file_path = os.path.join(BASE_DIR, "baja varillas.xlsx")
-    df = pd.read_excel(file_path)
-    df.columns = df.columns.str.strip()
-    # Convertir la columna "4.CANTIDAD" a numérico; las celdas vacías se convierten en NaN
-    df["4.CANTIDAD"] = pd.to_numeric(df["4.CANTIDAD"], errors="coerce")
-except Exception as e:
-    return f"Error al cargar el Excel: {e}"
+    try:
+        file_path = os.path.join(BASE_DIR, "baja varillas.xlsx")
+        df = pd.read_excel(file_path)
+        df.columns = df.columns.str.strip()
+        # Convertir la columna "4.CANTIDAD" a numérico; las celdas vacías se convierten en NaN
+        df["4.CANTIDAD"] = pd.to_numeric(df["4.CANTIDAD"], errors="coerce")
+    except Exception as e:
+        return f"Error al cargar el Excel: {e}"
     if request.method == "POST":
         quantities = {}
         for diam in selected_diametros:
