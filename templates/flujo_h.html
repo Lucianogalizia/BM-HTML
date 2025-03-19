@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Flujo H: Material de agregación</title>
+</head>
+<body>
+    <h1>FLUJO H: Material de agregación</h1>
+    <form action="{{ url_for('flujo_h_decidir') }}" method="POST">
+        <label>¿Agregar más material?</label><br>
+        <input type="radio" name="agregar_material" value="Seleccionar" checked> Seleccionar<br>
+        <input type="radio" name="agregar_material" value="SI"> SI<br>
+        <input type="radio" name="agregar_material" value="NO"> NO<br><br>
+        <button type="submit">Continuar</button>
+    </form>
+</body>
+</html>
