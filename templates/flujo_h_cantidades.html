@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Flujo H: Ingreso de Cantidades</title>
+</head>
+<body>
+    <h1>FLUJO H: Ingreso de Cantidades</h1>
+    <form method="POST" action="{{ url_for('flujo_h_cantidades') }}">
+        {% for mat in materiales %}
+            <label>Cantidad para {{ mat }}:</label>
+            <input type="number" name="qty_{{ mat }}" step="any" required><br><br>
+        {% endfor %}
+        <button type="submit">Aplicar Cantidades y Continuar</button>
+    </form>
+</body>
+</html>
