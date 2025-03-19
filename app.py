@@ -652,12 +652,98 @@ def flujo_g():
     else:
         return render_template("flujo_g.html")
 
-@app.route("/flujo_h")
+# ===================================
+# FLUJO H: Material de agregación
+# ===================================
+@app.route("/flujo_h", methods=["GET"])
 def flujo_h():
-    resultado = "<h1>Flujo H: Resultados Consolidados</h1>"
-    for flow, df in materiales_finales:
-        resultado += f"<h2>{flow}</h2>" + df.to_html(classes='table table-bordered', index=False)
-    return resultado
+    # Muestra la pantalla inicial con la pregunta
+    return render_template("flujo_h.html")
+
+@app.route("/flujo_h/decidir", methods=["POST"])
+def flujo_h_decidir():
+    respuesta = request.form.get("agregar_material")
+    # Si el usuario selecciona SI, se pasa a la selección de materiales;
+    # Si NO, se redirige directamente a la pantalla final (o al siguiente flujo)
+    if respuesta == "SI":
+        return redirect(url_for("flujo_h_seleccion"))
+    elif respuesta == "NO":
+        return redirect(url_for("flujo_final"))
+    else:
+        return "Selecciona una opción.", 400
+
+@app.route("/flujo_h/seleccion", methods=["GET", "POST"])
+def flujo_h_seleccion():
+    # Cargar el Excel GENERAL(1).xlsx y asegurar que la columna "4.CANTIDAD" exista
+    file_path_H = os.path.join(BASE_DIR, "GENERAL(1).xlsx")
+    try:
+        df_H = pd.read_excel(file_path_H)
+        df_H.columns = df_H.columns.str.strip()
+        if "4.CANTIDAD" not in df_H.columns:
+            df_H["4.CANTIDAD"] = 0
+    except Exception as e:
+        return f"Error al cargar el Excel: {e}"
+    # Obtener la lista de materiales
+    if "2. MATERIAL" in df_H.columns:
+        materiales = df_H["2. MATERIAL"].astype(str).unique().tolist()
+    else:
+        materiales = []
+    # Guardamos el DataFrame en una variable global temporal (por simplicidad, se vuelve a cargar en el siguiente paso)
+    # En un entorno de producción podrías usar sesión o persistencia
+    # Para redirigir, pasamos la lista de materiales (como string, separados por comas)
+    if request.method == "POST":
+        seleccionados = request.form.getlist("materiales")
+        if not seleccionados:
+            return "No se seleccionó ningún material.", 400
+        seleccion_str = ",".join(seleccionados)
+        return redirect(url_for("flujo_h_cantidades", materiales=seleccion_str))
+    else:
+        # Muestra la lista completa (se puede incluir la tabla del Excel si se desea)
+        return render_template("flujo_h_seleccion.html", materiales=materiales)
+
+@app.route("/flujo_h/cantidades", methods=["GET", "POST"])
+def flujo_h_cantidades():
+    # Recuperar la lista de materiales seleccionados (se envía sin "TODOS")
+    materiales_str = request.args.get("materiales", "")
+    seleccionados = materiales_str.split(",") if materiales_str else []
+    file_path_H = os.path.join(BASE_DIR, "GENERAL(1).xlsx")
+    try:
+        df_H = pd.read_excel(file_path_H)
+        df_H.columns = df_H.columns.str.strip()
+        if "4.CANTIDAD" not in df_H.columns:
+            df_H["4.CANTIDAD"] = 0
+    except Exception as e:
+        return f"Error al cargar el Excel: {e}"
+    if request.method == "POST":
+        quantities = {}
+        for mat in seleccionados:
+            qty = request.form.get(f"qty_{mat}", type=float)
+            quantities[mat] = qty
+        # Actualizar el DataFrame: para cada material seleccionado, 
+        # asignar la cantidad donde "4.CANTIDAD" es nulo
+        for mat, qty in quantities.items():
+            mask = (df_H["2. MATERIAL"].astype(str) == mat) & (df_H["4.CANTIDAD"].isna())
+            df_H.loc[mask, "4.CANTIDAD"] = qty
+        # Filtrar solo los materiales en los que se asignaron cantidades mayores a 0
+        assigned_df = df_H[df_H["2. MATERIAL"].astype(str).isin(seleccionados) & (df_H["4.CANTIDAD"] > 0)]
+        if not assigned_df.empty:
+            assigned_df_renombrado = renombrar_columnas(assigned_df)
+            materiales_finales.append(("FLUJO H", assigned_df_renombrado))
+        else:
+            # En caso de que no se asignen cantidades, se podría dar un mensaje o continuar
+            pass
+        return redirect(url_for("flujo_final"))
+    else:
+        if not seleccionados:
+            return "No se encontraron materiales seleccionados.", 400
+        return render_template("flujo_h_cantidades.html", materiales=seleccionados)
+
+# ===================================
+# FLUJO FINAL: Resultados Consolidados
+# ===================================
+@app.route("/flujo_final", methods=["GET"])
+def flujo_final():
+    return render_template("flujo_final.html", materiales_finales=materiales_finales)
 
 if __name__ == "__main__":
     app.run(debug=True)
