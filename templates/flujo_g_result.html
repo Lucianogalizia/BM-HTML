@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Flujo G: Resultado</title>
+</head>
+<body>
+    <h1>FLUJO G: Instalación BM</h1>
+    <p>{{ message }}</p>
+    {% if df %}
+        {{ df.to_html(classes="table table-bordered", index=False) | safe }}
+    {% endif %}
+    <form action="{{ url_for('flujo_h') }}" method="GET">
+        <button type="submit">Continuar a FLUJO H</button>
+    </form>
+</body>
+</html>
