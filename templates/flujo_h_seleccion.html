@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Flujo H: Selección de Materiales</title>
+</head>
+<body>
+    <h1>FLUJO H: Selección de Materiales</h1>
+    <p>Lista completa de materiales:</p>
+    <!-- Se muestra la tabla del Excel (opcional) -->
+    {{ df_html | safe }}
+    <p>Seleccione los materiales que desea agregar:</p>
+    <form method="POST" action="{{ url_for('flujo_h_seleccion') }}">
+        <select name="materiales" multiple size="10" style="width:50%;">
+            {% for mat in materiales %}
+                <option value="{{ mat }}">{{ mat }}</option>
+            {% endfor %}
+        </select><br><br>
+        <button type="submit">Aplicar selección</button>
+    </form>
+</body>
+</html>
