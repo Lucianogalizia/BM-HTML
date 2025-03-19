@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Flujo F: Configuración de Filtros</title>
+</head>
+<body>
+    <h1>Flujo F: Configuración de Filtros</h1>
+    <form method="POST">
+        <label>Selecciona DIÁMETRO:</label><br>
+        <select name="diametros" multiple size="6">
+            {% for diam in unique_diametros %}
+                <option value="{{ diam }}">{{ diam }}</option>
+            {% endfor %}
+        </select><br><br>
+        <label>Selecciona DIÁMETRO CSG:</label><br>
+        <select name="diacsg" required>
+            {% for csg in unique_diametros_csg %}
+                <option value="{{ csg }}">{{ csg }}</option>
+            {% endfor %}
+        </select><br><br>
+        <button type="submit">Confirmar Filtros</button>
+    </form>
+</body>
+</html>
