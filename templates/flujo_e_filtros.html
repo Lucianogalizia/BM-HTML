@@ -13,7 +13,7 @@
                 {% for tipo in filtros[diam].tipos %}
                     <option value="{{ tipo }}">{{ tipo }}</option>
                 {% endfor %}
-            </select>
+            </select><br><br>
             <label>GRADO DE ACERO:</label>
             <select name="acero_{{ diam }}">
                 {% for item in filtros[diam].acero %}
