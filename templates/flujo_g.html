@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Flujo G: Instalación BM</title>
+</head>
+<body>
+    <h1>FLUJO G: Instalación BM</h1>
+    <form method="POST" action="{{ url_for('flujo_g') }}">
+        <label>¿WO a BM?</label><br>
+        <input type="radio" name="wo" value="seleccionar" checked> seleccionar<br>
+        <input type="radio" name="wo" value="SI"> SI<br>
+        <input type="radio" name="wo" value="NO"> NO<br><br>
+        <button type="submit">Enviar</button>
+    </form>
+</body>
+</html>
