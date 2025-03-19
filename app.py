@@ -707,7 +707,7 @@ def flujo_h_cantidades():
     try:
         df_H = pd.read_excel(file_path_H)
         df_H.columns = df_H.columns.str.strip()
-        # Si no existe, creamos "4.CANTIDAD" con 0 (para asegurar que las actualizaciones funcionen)
+        # Crear o convertir la columna "4.CANTIDAD" a numérico
         if "4.CANTIDAD" not in df_H.columns:
             df_H["4.CANTIDAD"] = 0
         else:
@@ -718,20 +718,21 @@ def flujo_h_cantidades():
     if request.method == "POST":
         quantities = {}
         for mat in seleccionados:
+            # Se espera que el usuario ingrese cantidad solo para materiales específicos (no para "TODOS")
             qty = request.form.get(f"qty_{mat}", type=float)
-            quantities[mat] = qty
-        # Actualizar el DataFrame: para cada material seleccionado, asignar la cantidad
+            quantities[mat] = qty if qty is not None else 0
+        # Actualizamos el DataFrame: para cada material seleccionado, asignamos la cantidad donde 4.CANTIDAD es nulo o 0
         for mat, qty in quantities.items():
             mask = (df_H["2. MATERIAL"].astype(str) == mat) & ((df_H["4.CANTIDAD"].isna()) | (df_H["4.CANTIDAD"] <= 0))
             df_H.loc[mask, "4.CANTIDAD"] = qty
-        # Filtrar sólo los materiales con cantidad mayor que 0
-        assigned_df = df_H[df_H["2. MATERIAL"].astype(str).isin(seleccionados) & (df_H["4.CANTIDAD"] > 0)]
+        # Filtramos solo los materiales con cantidad mayor a 0
+        assigned_df = df_H[(df_H["2. MATERIAL"].astype(str).isin(seleccionados)) & (df_H["4.CANTIDAD"] > 0)]
         if not assigned_df.empty:
             assigned_df_renombrado = renombrar_columnas(assigned_df)
             materiales_finales.append(("FLUJO H", assigned_df_renombrado))
         else:
+            # Si no se asignó cantidad mayor a 0, no se añade a materiales_finales
             print("No se asignaron cantidades (o todas fueron 0).")
-        # Redirige a la pantalla final consolidada
         return redirect(url_for("flujo_final"))
     else:
         if not seleccionados:
@@ -741,6 +742,7 @@ def flujo_h_cantidades():
 @app.route("/flujo_final", methods=["GET"])
 def flujo_final():
     return render_template("flujo_final.html", materiales_finales=materiales_finales)
+
 
 if __name__ == "__main__":
     app.run(debug=True)
