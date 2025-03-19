@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Flujo Final: Materiales Consolidados</title>
+</head>
+<body>
+    <h1>Flujo Final: Materiales Consolidados</h1>
+    {% for flow, df in materiales_finales %}
+        <h2>{{ flow }}</h2>
+        {{ df.to_html(classes="table table-bordered", index=False) | safe }}
+    {% endfor %}
+</body>
+</html>
