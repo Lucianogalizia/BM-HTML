@@ -732,11 +732,6 @@ def flujo_h_cantidades():
             return "No se encontraron materiales seleccionados.", 400
         return render_template("flujo_h_cantidades.html", materiales=seleccionados)
 
-@app.route("/flujo_final", methods=["GET"])
-def flujo_final():
-    return render_template("flujo_final.html", materiales_finales=materiales_finales)
-
-
 # ===================================
 # FLUJO FINAL: Resultados Consolidados
 # ===================================
