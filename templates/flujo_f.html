@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Flujo F: Abandona Pozo</title>
+</head>
+<body>
+    <h1>Flujo F: Abandona Pozo</h1>
+    <form action="{{ url_for('flujo_f_decidir') }}" method="POST">
+        <label>¿Abandono/recupero?</label><br>
+        <select name="abandono" required>
+            <option value="">Seleccione opción</option>
+            <option value="SI">SI</option>
+            <option value="NO">NO</option>
+        </select><br><br>
+        <button type="submit">Continuar</button>
+    </form>
+</body>
+</html>
