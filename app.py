@@ -508,28 +508,47 @@ def flujo_e_filtros():
 def flujo_e_cantidades():
     diametros_str = request.args.get("diametros", "")
     selected_diametros = diametros_str.split(",") if diametros_str else []
-    # Los filtros ya se han aplicado para mostrar los DIÁMETRO; aquí simplemente solicitamos cantidades
+    filtros_str = request.args.get("filtros", "{}")  # Recuperamos el parámetro filtros
+    all_filters = json.loads(filtros_str)
+    
     try:
         file_path = os.path.join(BASE_DIR, "baja varillas.xlsx")
         df = pd.read_excel(file_path)
         df.columns = df.columns.str.strip()
+        df["DIÁMETRO"] = df["DIÁMETRO"].astype(str).str.strip()  # Aseguramos la conversión
         # Convertir la columna "4.CANTIDAD" a numérico; las celdas vacías se convierten en NaN
-        df["DIÁMETRO"] = df["DIÁMETRO"].astype(str).str.strip()  # Agrega esta línea
         df["4.CANTIDAD"] = pd.to_numeric(df["4.CANTIDAD"], errors="coerce")
     except Exception as e:
         return f"Error al cargar el Excel: {e}"
+    
+    # Aplicar los filtros adicionales de cada DIÁMETRO
+    filtered_df = pd.DataFrame()
+    for diam in selected_diametros:
+        subset = df[df["DIÁMETRO"] == diam]
+        # Si existen filtros para este diámetro, aplicarlos
+        if diam in all_filters:
+            filtros_diam = all_filters[diam]
+            subset = subset[subset["TIPO"].isin(filtros_diam["tipo_list"])]
+            if "GRADO DE ACERO" in subset.columns:
+                subset = subset[subset["GRADO DE ACERO"].isin(filtros_diam["acero_list"])]
+            if "GRADO DE ACERO CUPLA" in subset.columns:
+                subset = subset[subset["GRADO DE ACERO CUPLA"].isin(filtros_diam["acero_cup_list"])]
+            if "TIPO DE CUPLA" in subset.columns:
+                subset = subset[subset["TIPO DE CUPLA"].isin(filtros_diam["tipo_cup_list"])]
+        filtered_df = pd.concat([filtered_df, subset])
+    
     if request.method == "POST":
         quantities = {}
         for diam in selected_diametros:
             qty = request.form.get(f"qty_{diam}", type=float)
             quantities[diam] = qty
-        filtered_df = df[df["DIÁMETRO"].isin(selected_diametros)]
+        # Actualizar la columna "4.CANTIDAD" donde la celda es NaN
         for diam, qty in quantities.items():
             mask = (filtered_df["DIÁMETRO"] == diam) & (filtered_df["4.CANTIDAD"].isna())
             filtered_df.loc[mask, "4.CANTIDAD"] = qty
         final_df_renombrado = renombrar_columnas(filtered_df)
         materiales_finales.append(("FLUJO E", final_df_renombrado))
-        # No mostramos la lista aquí; se guardará para la consolidación final
+        # No se muestra la lista aquí; se guarda para la consolidación final
         return redirect(url_for("flujo_h"))
     else:
         if not selected_diametros:
