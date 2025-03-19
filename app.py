@@ -652,19 +652,13 @@ def flujo_g():
     else:
         return render_template("flujo_g.html")
 
-# ===================================
-# FLUJO H: Material de agregación
-# ===================================
 @app.route("/flujo_h", methods=["GET"])
 def flujo_h():
-    # Muestra la pantalla inicial con la pregunta
     return render_template("flujo_h.html")
 
 @app.route("/flujo_h/decidir", methods=["POST"])
 def flujo_h_decidir():
     respuesta = request.form.get("agregar_material")
-    # Si el usuario selecciona SI, se pasa a la selección de materiales;
-    # Si NO, se redirige directamente a la pantalla final (o al siguiente flujo)
     if respuesta == "SI":
         return redirect(url_for("flujo_h_seleccion"))
     elif respuesta == "NO":
@@ -674,23 +668,24 @@ def flujo_h_decidir():
 
 @app.route("/flujo_h/seleccion", methods=["GET", "POST"])
 def flujo_h_seleccion():
-    # Cargar el Excel GENERAL(1).xlsx y asegurar que la columna "4.CANTIDAD" exista
     file_path_H = os.path.join(BASE_DIR, "GENERAL(1).xlsx")
     try:
         df_H = pd.read_excel(file_path_H)
         df_H.columns = df_H.columns.str.strip()
+        # Si no existe la columna "4.CANTIDAD", se crea con NaN
         if "4.CANTIDAD" not in df_H.columns:
-            df_H["4.CANTIDAD"] = 0
+            df_H["4.CANTIDAD"] = pd.NA
+        else:
+            df_H["4.CANTIDAD"] = pd.to_numeric(df_H["4.CANTIDAD"], errors="coerce")
     except Exception as e:
         return f"Error al cargar el Excel: {e}"
-    # Obtener la lista de materiales
+    
     if "2. MATERIAL" in df_H.columns:
         materiales = df_H["2. MATERIAL"].astype(str).unique().tolist()
     else:
         materiales = []
-    # Guardamos el DataFrame en una variable global temporal (por simplicidad, se vuelve a cargar en el siguiente paso)
-    # En un entorno de producción podrías usar sesión o persistencia
-    # Para redirigir, pasamos la lista de materiales (como string, separados por comas)
+    # Generar la tabla HTML opcionalmente para visualizar el Excel completo
+    df_html = df_H.to_html(classes="table table-bordered", index=False)
     if request.method == "POST":
         seleccionados = request.form.getlist("materiales")
         if not seleccionados:
@@ -698,20 +693,21 @@ def flujo_h_seleccion():
         seleccion_str = ",".join(seleccionados)
         return redirect(url_for("flujo_h_cantidades", materiales=seleccion_str))
     else:
-        # Muestra la lista completa (se puede incluir la tabla del Excel si se desea)
-        return render_template("flujo_h_seleccion.html", materiales=materiales)
+        return render_template("flujo_h_seleccion.html", materiales=materiales, df_html=df_html)
 
 @app.route("/flujo_h/cantidades", methods=["GET", "POST"])
 def flujo_h_cantidades():
-    # Recuperar la lista de materiales seleccionados (se envía sin "TODOS")
     materiales_str = request.args.get("materiales", "")
     seleccionados = materiales_str.split(",") if materiales_str else []
     file_path_H = os.path.join(BASE_DIR, "GENERAL(1).xlsx")
     try:
         df_H = pd.read_excel(file_path_H)
         df_H.columns = df_H.columns.str.strip()
+        # Si la columna "4.CANTIDAD" no existe, la creamos con NaN (para que isna() funcione)
         if "4.CANTIDAD" not in df_H.columns:
-            df_H["4.CANTIDAD"] = 0
+            df_H["4.CANTIDAD"] = pd.NA
+        else:
+            df_H["4.CANTIDAD"] = pd.to_numeric(df_H["4.CANTIDAD"], errors="coerce")
     except Exception as e:
         return f"Error al cargar el Excel: {e}"
     if request.method == "POST":
@@ -719,24 +715,27 @@ def flujo_h_cantidades():
         for mat in seleccionados:
             qty = request.form.get(f"qty_{mat}", type=float)
             quantities[mat] = qty
-        # Actualizar el DataFrame: para cada material seleccionado, 
-        # asignar la cantidad donde "4.CANTIDAD" es nulo
+        # Actualizamos el DataFrame: para cada material, asignamos la cantidad si es NaN o 0
         for mat, qty in quantities.items():
-            mask = (df_H["2. MATERIAL"].astype(str) == mat) & (df_H["4.CANTIDAD"].isna())
+            mask = (df_H["2. MATERIAL"].astype(str) == mat) & ((df_H["4.CANTIDAD"].isna()) | (df_H["4.CANTIDAD"] <= 0))
             df_H.loc[mask, "4.CANTIDAD"] = qty
-        # Filtrar solo los materiales en los que se asignaron cantidades mayores a 0
+        # Filtrar solo materiales con cantidad mayor que 0
         assigned_df = df_H[df_H["2. MATERIAL"].astype(str).isin(seleccionados) & (df_H["4.CANTIDAD"] > 0)]
         if not assigned_df.empty:
             assigned_df_renombrado = renombrar_columnas(assigned_df)
             materiales_finales.append(("FLUJO H", assigned_df_renombrado))
         else:
-            # En caso de que no se asignen cantidades, se podría dar un mensaje o continuar
-            pass
+            print("No se asignaron cantidades (o todas fueron 0).")
         return redirect(url_for("flujo_final"))
     else:
         if not seleccionados:
             return "No se encontraron materiales seleccionados.", 400
         return render_template("flujo_h_cantidades.html", materiales=seleccionados)
+
+@app.route("/flujo_final", methods=["GET"])
+def flujo_final():
+    return render_template("flujo_final.html", materiales_finales=materiales_finales)
+
 
 # ===================================
 # FLUJO FINAL: Resultados Consolidados
