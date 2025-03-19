@@ -494,21 +494,10 @@ def flujo_e_filtros():
             tipo_cup_list = ["TODOS"] if t_cup == "Seleccionar" else [t_cup, "TODOS"]
             all_filters[diam] = {"tipo_list": tipo_sel, "acero_list": acero_list,
                                  "acero_cup_list": acero_cup_list, "tipo_cup_list": tipo_cup_list}
-        final_condition = pd.Series([False]*len(df))
-        for diam_value, fdict in all_filters.items():
-            temp = pd.Series([False]*len(df))
-            for tipo_val in fdict["tipo_list"]:
-                cond = (df["DIÁMETRO"].isin([diam_value, "TODOS"]) &
-                        df["TIPO"].isin([tipo_val, "TODOS"]) &
-                        df["GRADO DE ACERO"].isin(fdict["acero_list"]) &
-                        df["GRADO DE ACERO CUPLA"].isin(fdict["acero_cup_list"]) &
-                        df["TIPO DE CUPLA"].isin(fdict["tipo_cup_list"]))
-                temp = temp | cond
-            final_condition = final_condition | temp
-        final_df = df[final_condition]
-        final_df_renombrado = renombrar_columnas(final_df)
-        materiales_finales.append(("FLUJO E", final_df_renombrado))
-        return redirect(url_for("flujo_e_cantidades"))
+        # En lugar de procesar y guardar el resultado en este paso,
+        # se redirige a la página de ingreso de cantidades, pasando los DIÁMETRO seleccionados y los filtros
+        filtros_json = json.dumps(all_filters)
+        return redirect(url_for("flujo_e_cantidades", diametros=diametros_str, filtros=filtros_json))
     else:
         return render_template("flujo_e_filtros.html", selected_diametros=selected_diametros, filtros=filtros)
 
@@ -516,6 +505,8 @@ def flujo_e_filtros():
 def flujo_e_cantidades():
     diametros_str = request.args.get("diametros", "")
     selected_diametros = diametros_str.split(",") if diametros_str else []
+    # Recuperar filtros en JSON (aunque en este ejemplo no se usan para actualizar el Excel)
+    filtros_json = request.args.get("filtros", "{}")
     try:
         file_path = os.path.join(BASE_DIR, "baja varillas.xlsx")
         df = pd.read_excel(file_path)
@@ -533,12 +524,15 @@ def flujo_e_cantidades():
             filtered_df.loc[mask, "4.CANTIDAD"] = qty
         final_df_renombrado = renombrar_columnas(filtered_df)
         materiales_finales.append(("FLUJO E", final_df_renombrado))
-        return redirect(url_for("flujo_g"))
+        # Redirigir a flujo_h para que se muestren todos los resultados consolidados al final
+        return redirect(url_for("flujo_h"))
     else:
+        if not selected_diametros:
+            return "No se encontraron DIÁMETRO seleccionados.", 400
         return render_template("flujo_e_cantidades.html", selected_diametros=selected_diametros)
 
 # ===================================
-# Dummy FLUJO F y FLUJO G
+# Dummy FLUJO F y FLUJO G (o H)
 # ===================================
 @app.route("/flujo_f")
 def flujo_f():
@@ -551,10 +545,9 @@ def flujo_g():
         resultado += f"<h2>{flow}</h2>" + df.to_html(classes='table table-bordered', index=False)
     return resultado
 
-
 @app.route("/flujo_h")
 def flujo_h():
-    resultado = "<h1>Flujo H: Resultados Acumulados</h1>"
+    resultado = "<h1>Flujo H: Resultados Consolidados</h1>"
     for flow, df in materiales_finales:
         resultado += f"<h2>{flow}</h2>" + df.to_html(classes='table table-bordered', index=False)
     return resultado
