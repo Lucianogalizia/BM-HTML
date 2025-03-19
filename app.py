@@ -485,19 +485,39 @@ def flujo_e_filtros():
         # Se recogen los filtros seleccionados para cada DIÁMETRO
         all_filters = {}
         for diam in selected_diametros:
+            # Recoger el filtro de TIPO
             tipo_sel = request.form.getlist(f"tipo_{diam}")
-            if not tipo_sel:
-                tipo_sel = ["TODOS"]
+            # Si se seleccionó algún valor, se crea la lista con el valor y "TODOS"
+            if tipo_sel:
+                tipo_list = tipo_sel + ["TODOS"]
             else:
-                tipo_sel.append("TODOS")
-            ac = request.form.get(f"acero_{diam}", "Seleccionar")
-            ac_cup = request.form.get(f"acero_cup_{diam}", "Seleccionar")
-            t_cup = request.form.get(f"tipo_cup_{diam}", "Seleccionar")
-            acero_list = ["TODOS"] if ac == "Seleccionar" else [ac, "TODOS"]
-            acero_cup_list = ["TODOS"] if ac_cup == "Seleccionar" else [ac_cup, "TODOS"]
-            tipo_cup_list = ["TODOS"] if t_cup == "Seleccionar" else [t_cup, "TODOS"]
-            all_filters[diam] = {"tipo_list": tipo_sel, "acero_list": acero_list,
-                                 "acero_cup_list": acero_cup_list, "tipo_cup_list": tipo_cup_list}
+                # Si no se seleccionó nada, dejamos la lista vacía para indicar que no se filtra por TIPO
+                tipo_list = []
+        
+            # Repetir para las otras columnas, comparando con "" o "Seleccionar"
+            ac = request.form.get(f"acero_{diam}", "")
+            if ac and ac != "Seleccionar":
+                acero_list = [ac, "TODOS"]
+            else:
+                acero_list = []
+        
+            ac_cup = request.form.get(f"acero_cup_{diam}", "")
+            if ac_cup and ac_cup != "Seleccionar":
+                acero_cup_list = [ac_cup, "TODOS"]
+            else:
+                acero_cup_list = []
+        
+            t_cup = request.form.get(f"tipo_cup_{diam}", "")
+            if t_cup and t_cup != "Seleccionar":
+                tipo_cup_list = [t_cup, "TODOS"]
+            else:
+                tipo_cup_list = []
+        
+            all_filters[diam] = {"tipo_list": tipo_list,
+                                 "acero_list": acero_list,
+                                 "acero_cup_list": acero_cup_list,
+                                 "tipo_cup_list": tipo_cup_list}
+
         # En lugar de procesar y mostrar el resultado, redirigimos a la etapa de ingreso de cantidades
         filtros_json = json.dumps(all_filters)
         return redirect(url_for("flujo_e_cantidades", diametros=diametros_str, filtros=filtros_json))
@@ -528,13 +548,16 @@ def flujo_e_cantidades():
         # Si existen filtros para este diámetro, aplicarlos
         if diam in all_filters:
             filtros_diam = all_filters[diam]
-            subset = subset[subset["TIPO"].isin(filtros_diam["tipo_list"])]
-            if "GRADO DE ACERO" in subset.columns:
+            # Solo se filtra TIPO si se seleccionó algún valor
+            if filtros_diam.get("tipo_list"):
+                subset = subset[subset["TIPO"].isin(filtros_diam["tipo_list"])]
+            if "GRADO DE ACERO" in subset.columns and filtros_diam.get("acero_list"):
                 subset = subset[subset["GRADO DE ACERO"].isin(filtros_diam["acero_list"])]
-            if "GRADO DE ACERO CUPLA" in subset.columns:
+            if "GRADO DE ACERO CUPLA" in subset.columns and filtros_diam.get("acero_cup_list"):
                 subset = subset[subset["GRADO DE ACERO CUPLA"].isin(filtros_diam["acero_cup_list"])]
-            if "TIPO DE CUPLA" in subset.columns:
-                subset = subset[subset["TIPO DE CUPLA"].isin(filtros_diam["tipo_cup_list"])]
+            if "TIPO DE CUPLA" in subset.columns and filtros_diam.get("tipo_cup_list"):
+        subset = subset[subset["TIPO DE CUPLA"].isin(filtros_diam["tipo_cup_list"])]
+
         filtered_df = pd.concat([filtered_df, subset])
     
     if request.method == "POST":
