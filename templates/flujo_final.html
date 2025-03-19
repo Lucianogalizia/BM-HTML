@@ -5,11 +5,16 @@
 </head>
 <body>
     <h1>Flujo Final: Materiales Consolidados</h1>
-    {% for flow, df in materiales_finales %}
-        <h2>{{ flow }}</h2>
-        {{ df.to_html(classes="table table-bordered", index=False) | safe }}
-    {% endfor %}
+    {% if materiales_finales %}
+        {% for flow, df in materiales_finales %}
+            <h2>{{ flow }}</h2>
+            {{ df.to_html(classes="table table-bordered", index=False) | safe }}
+        {% endfor %}
+    {% else %}
+        <p>No se han agregado materiales.</p>
+    {% endif %}
 </body>
 </html>
+
 
 
