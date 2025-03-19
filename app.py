@@ -525,18 +525,18 @@ def flujo_e_filtros():
         return render_template("flujo_e_filtros.html", selected_diametros=selected_diametros, filtros=filtros)
 
 @app.route("/flujo_e/cantidades", methods=["GET", "POST"])
+@app.route("/flujo_e/cantidades", methods=["GET", "POST"])
 def flujo_e_cantidades():
     diametros_str = request.args.get("diametros", "")
     selected_diametros = diametros_str.split(",") if diametros_str else []
-    filtros_str = request.args.get("filtros", "{}")  # Recuperamos el parámetro filtros
+    filtros_str = request.args.get("filtros", "{}")
     all_filters = json.loads(filtros_str)
     
     try:
         file_path = os.path.join(BASE_DIR, "baja varillas.xlsx")
         df = pd.read_excel(file_path)
         df.columns = df.columns.str.strip()
-        df["DIÁMETRO"] = df["DIÁMETRO"].astype(str).str.strip()  # Aseguramos la conversión
-        # Convertir la columna "4.CANTIDAD" a numérico; las celdas vacías se convierten en NaN
+        df["DIÁMETRO"] = df["DIÁMETRO"].astype(str).str.strip()  # Aseguramos la conversión y limpieza
         df["4.CANTIDAD"] = pd.to_numeric(df["4.CANTIDAD"], errors="coerce")
     except Exception as e:
         return f"Error al cargar el Excel: {e}"
@@ -544,11 +544,10 @@ def flujo_e_cantidades():
     # Aplicar los filtros adicionales de cada DIÁMETRO
     filtered_df = pd.DataFrame()
     for diam in selected_diametros:
-        subset = df[df["DIÁMETRO"] == diam]
-        # Si existen filtros para este diámetro, aplicarlos
+        # Aquí se incluye el valor "TODOS" junto con el diámetro seleccionado
+        subset = df[df["DIÁMETRO"].isin([diam, "TODOS"])]
         if diam in all_filters:
             filtros_diam = all_filters[diam]
-            # Solo se filtra TIPO si se seleccionó algún valor
             if filtros_diam.get("tipo_list"):
                 subset = subset[subset["TIPO"].isin(filtros_diam["tipo_list"])]
             if "GRADO DE ACERO" in subset.columns and filtros_diam.get("acero_list"):
@@ -557,9 +556,9 @@ def flujo_e_cantidades():
                 subset = subset[subset["GRADO DE ACERO CUPLA"].isin(filtros_diam["acero_cup_list"])]
             if "TIPO DE CUPLA" in subset.columns and filtros_diam.get("tipo_cup_list"):
                 subset = subset[subset["TIPO DE CUPLA"].isin(filtros_diam["tipo_cup_list"])]
-
         filtered_df = pd.concat([filtered_df, subset])
     
+   
     if request.method == "POST":
         quantities = {}
         for diam in selected_diametros:
