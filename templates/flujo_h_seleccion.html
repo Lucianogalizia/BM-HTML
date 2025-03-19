@@ -6,7 +6,7 @@
 <body>
     <h1>FLUJO H: Selección de Materiales</h1>
     <p>Lista completa de materiales:</p>
-    <!-- Se muestra la tabla completa para referencia -->
+    <!-- Se muestra la tabla completa para consulta -->
     {{ df_html | safe }}
     <p>Seleccione los materiales que desea agregar:</p>
     <form method="POST" action="{{ url_for('flujo_h_seleccion') }}">
@@ -19,4 +19,5 @@
     </form>
 </body>
 </html>
+
 
