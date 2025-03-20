@@ -845,12 +845,13 @@ def flujo_g():
             message = "Lista de materiales:"
             return render_template("flujo_g_result.html", message=message, df=df_renombrado)
         elif wo == "NO":
-            message = "No se mostrarán los materiales."
-            return render_template("flujo_g_result.html", message=message, df=None)
+            # Redirigir al flujo_h en lugar de renderizar la plantilla
+            return redirect(url_for("flujo_h"))
         else:
             return "Selecciona una opción.", 400
     else:
         return render_template("flujo_g.html")
+
 
 # ===================================
 # FLUJO H: Material de agregación
