@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Flujo A: Selección de TIPO</title>
+</head>
+<body>
+    <h1>Flujo A: Selección de TIPO</h1>
+    <form method="POST">
+        {% for diam in diametros %}
+            <h3>Para DIÁMETRO: {{ diam }}</h3>
+            <label>Seleccione un TIPO:</label>
+            <select name="tipo_{{ diam }}">
+                {% for item in tipos[diam] %}
+                    <option value="{{ item }}">{{ item }}</option>
+                {% endfor %}
+            </select>
+            <br><br>
+        {% endfor %}
+        <button type="submit">Continuar</button>
+    </form>
+</body>
+</html>
+
