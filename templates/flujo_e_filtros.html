@@ -1,43 +1,61 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Flujo E: Configuración de Filtros</title>
-</head>
-<body>
-    <h1>Flujo E: Configuración de Filtros</h1>
+{% extends "base.html" %}
+
+{% block title %}Flujo E: Configuración de Filtros{% endblock %}
+
+{% block content %}
+<div class="row">
+  <div class="col-md-10 offset-md-1">
+    <h1 class="text-center mb-4">Flujo E: Configuración de Filtros</h1>
     <form method="POST">
-        {% for diam in selected_diametros %}
-            <h3>Para DIÁMETRO: {{ diam }}</h3>
-            <label>Selecciona uno o más TIPO:</label><br>
-            <select name="tipo_{{ diam }}" multiple size="5">
+      {% for diam in selected_diametros %}
+        <div class="card mb-3">
+          <div class="card-header">
+            Para DIÁMETRO: {{ diam }}
+          </div>
+          <div class="card-body">
+            <div class="mb-3">
+              <label class="form-label">Selecciona uno o más TIPO:</label>
+              <select name="tipo_{{ diam }}" multiple class="form-select" size="5">
                 {% for tipo in filtros[diam].tipos %}
-                    <option value="{{ tipo }}">{{ tipo }}</option>
+                  <option value="{{ tipo }}">{{ tipo }}</option>
                 {% endfor %}
-            </select><br><br>
-            <label>GRADO DE ACERO:</label>
-            <select name="acero_{{ diam }}">
+              </select>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">GRADO DE ACERO:</label>
+              <select name="acero_{{ diam }}" class="form-select">
                 {% for item in filtros[diam].acero %}
-                    <option value="{{ item }}">{{ item }}</option>
+                  <option value="{{ item }}">{{ item }}</option>
                 {% endfor %}
-            </select><br><br>
-            <label>GRADO DE ACERO CUPLA:</label>
-            <select name="acero_cup_{{ diam }}">
+              </select>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">GRADO DE ACERO CUPLA:</label>
+              <select name="acero_cup_{{ diam }}" class="form-select">
                 {% for item in filtros[diam].acero_cup %}
-                    <option value="{{ item }}">{{ item }}</option>
+                  <option value="{{ item }}">{{ item }}</option>
                 {% endfor %}
-            </select><br><br>
-            <label>TIPO DE CUPLA:</label>
-            <select name="tipo_cup_{{ diam }}">
+              </select>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">TIPO DE CUPLA:</label>
+              <select name="tipo_cup_{{ diam }}" class="form-select">
                 {% for item in filtros[diam].tipo_cup %}
-                    <option value="{{ item }}">{{ item }}</option>
+                  <option value="{{ item }}">{{ item }}</option>
                 {% endfor %}
-            </select><br><br>
-            <hr>
-        {% endfor %}
-        <button type="submit">Aplicar Filtros</button>
+              </select>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+      <div class="text-center">
+        <button type="submit" class="btn btn-primary">Aplicar Filtros</button>
+      </div>
     </form>
-</body>
-</html>
+  </div>
+</div>
+{% endblock %}
+
 
 
 
