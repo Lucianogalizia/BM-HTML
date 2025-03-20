@@ -30,7 +30,10 @@ def renombrar_columnas(df):
 # ===================================
 @app.route("/")
 def index():
+    global materiales_finales
+    materiales_finales = []  # Reinicia la lista para cada nueva corrida
     return render_template("index.html")
+
 
 # ===================================
 # FLUJO A: Ajuste de medida - Multi Paso
