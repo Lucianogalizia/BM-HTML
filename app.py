@@ -834,6 +834,7 @@ def flujo_f_cantidades():
 
 
 @app.route("/flujo_g", methods=["GET", "POST"])
+@app.route("/flujo_g", methods=["GET", "POST"])
 def flujo_g():
     if request.method == "POST":
         wo = request.form.get("wo")
@@ -844,16 +845,18 @@ def flujo_g():
             except Exception as e:
                 return f"Error al cargar Excel: {e}"
             df_renombrado = renombrar_columnas(df)
+            # Solo almacenamos los materiales, sin imprimirlos aún
             materiales_finales.append(("FLUJO G", df_renombrado))
-            message = "Lista de materiales:"
-            return render_template("flujo_g_result.html", message=message, df=df_renombrado)
+            # Redirigimos al flujo H para continuar el proceso
+            return redirect(url_for("flujo_h"))
         elif wo == "NO":
-            # Redirigir al flujo_h en lugar de renderizar la plantilla
+            # En caso de NO, simplemente redirigimos al flujo H
             return redirect(url_for("flujo_h"))
         else:
             return "Selecciona una opción.", 400
     else:
         return render_template("flujo_g.html")
+
 
 
 # ===================================
