@@ -1,23 +1,29 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Flujo A: Selección de TIPO</title>
-</head>
-<body>
-    <h1>Flujo A: Selección de TIPO</h1>
+{% extends "base.html" %}
+
+{% block title %}Flujo A: Selección de TIPO{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-8">
+    <h1 class="text-center mb-4">Flujo A: Selección de TIPO</h1>
     <form method="POST">
-        {% for diam in diametros %}
-            <h3>Para DIÁMETRO: {{ diam }}</h3>
-            <label>Seleccione un TIPO:</label>
-            <select name="tipo_{{ diam }}">
-                {% for item in tipos[diam] %}
-                    <option value="{{ item }}">{{ item }}</option>
-                {% endfor %}
-            </select>
-            <br><br>
-        {% endfor %}
-        <button type="submit">Continuar</button>
+      {% for diam in diametros %}
+        <div class="mb-3">
+          <h3>Para DIÁMETRO: {{ diam }}</h3>
+          <label class="form-label">Seleccione un TIPO:</label>
+          <select name="tipo_{{ diam }}" class="form-select">
+            {% for item in tipos[diam] %}
+              <option value="{{ item }}">{{ item }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      {% endfor %}
+      <div class="text-center">
+        <button type="submit" class="btn btn-primary">Continuar</button>
+      </div>
     </form>
-</body>
-</html>
+  </div>
+</div>
+{% endblock %}
+
 
