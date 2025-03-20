@@ -1,22 +1,28 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Flujo A: Selección de TIPO DE CUPLA</title>
-</head>
-<body>
-    <h1>Flujo A: Selección de TIPO DE CUPLA</h1>
+{% extends "base.html" %}
+
+{% block title %}Flujo A: Selección de TIPO DE CUPLA{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-8">
+    <h1 class="text-center mb-4">Flujo A: Selección de TIPO DE CUPLA</h1>
     <form method="POST">
-        {% for diam in diametros %}
-            <h3>Para DIÁMETRO: {{ diam }}</h3>
-            <label>Seleccione el TIPO DE CUPLA:</label>
-            <select name="tipo_cup_{{ diam }}">
-                {% for item in tipo_cup[diam] %}
-                    <option value="{{ item }}">{{ item }}</option>
-                {% endfor %}
-            </select>
-            <br><br>
-        {% endfor %}
-        <button type="submit">Continuar</button>
+      {% for diam in diametros %}
+        <div class="mb-3">
+          <h3>Para DIÁMETRO: {{ diam }}</h3>
+          <label class="form-label">Seleccione el TIPO DE CUPLA:</label>
+          <select name="tipo_cup_{{ diam }}" class="form-select">
+            {% for item in tipo_cup[diam] %}
+              <option value="{{ item }}">{{ item }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      {% endfor %}
+      <div class="text-center">
+        <button type="submit" class="btn btn-primary">Continuar</button>
+      </div>
     </form>
-</body>
-</html>
+  </div>
+</div>
+{% endblock %}
+
