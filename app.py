@@ -890,7 +890,7 @@ def flujo_h_seleccion():
     else:
         materiales = []
     # Se genera la tabla HTML para que el usuario la consulte (opcional)
-    df_html = df_H.to_html(classes="table table-bordered", index=False)
+    #df_html = df_H.to_html(classes="table table-bordered", index=False)
     if request.method == "POST":
         seleccionados = request.form.getlist("materiales")
         if not seleccionados:
