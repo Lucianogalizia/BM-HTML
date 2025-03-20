@@ -1,16 +1,32 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Flujo G: Instalación BM</title>
-</head>
-<body>
-    <h1>FLUJO G: Instalación BM</h1>
+{% extends "base.html" %}
+
+{% block title %}Flujo G: Instalación BM{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-8">
+    <h1 class="text-center mb-4">Flujo G: Instalación BM</h1>
     <form method="POST" action="{{ url_for('flujo_g') }}">
-        <label>¿WO a BM?</label><br>
-        <input type="radio" name="wo" value="seleccionar" checked> seleccionar<br>
-        <input type="radio" name="wo" value="SI"> SI<br>
-        <input type="radio" name="wo" value="NO"> NO<br><br>
-        <button type="submit">Enviar</button>
+      <div class="mb-3">
+        <label class="form-label">¿WO a BM?</label><br>
+        <div class="form-check">
+          <input class="form-check-input" type="radio" name="wo" id="woSeleccionar" value="seleccionar" checked>
+          <label class="form-check-label" for="woSeleccionar">Seleccionar</label>
+        </div>
+        <div class="form-check">
+          <input class="form-check-input" type="radio" name="wo" id="woSi" value="SI">
+          <label class="form-check-label" for="woSi">SI</label>
+        </div>
+        <div class="form-check">
+          <input class="form-check-input" type="radio" name="wo" id="woNo" value="NO">
+          <label class="form-check-label" for="woNo">NO</label>
+        </div>
+      </div>
+      <div class="text-center">
+        <button type="submit" class="btn btn-primary">Enviar</button>
+      </div>
     </form>
-</body>
-</html>
+  </div>
+</div>
+{% endblock %}
+
