@@ -1,16 +1,23 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Flujo G: Resultado</title>
-</head>
-<body>
-    <h1>FLUJO G: Instalación BM</h1>
+{% extends "base.html" %}
+
+{% block title %}Flujo G: Resultado{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-8">
+    <h1 class="text-center mb-4">Flujo G: Instalación BM</h1>
     <p>{{ message }}</p>
     {% if not df.empty %}
+      <div class="table-responsive">
         {{ df.to_html(classes="table table-bordered", index=False) | safe }}
+      </div>
     {% endif %}
-    <form action="{{ url_for('flujo_h') }}" method="GET">
-        <button type="submit">Continuar a FLUJO H</button>
-    </form>
-</body>
-</html>
+    <div class="text-center mt-4">
+      <form action="{{ url_for('flujo_h') }}" method="GET">
+        <button type="submit" class="btn btn-primary">Continuar a FLUJO H</button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
