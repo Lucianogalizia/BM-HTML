@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Flujo A: Selección de GRADO DE ACERO</title>
+</head>
+<body>
+    <h1>Flujo A: Selección de GRADO DE ACERO</h1>
+    <form method="POST">
+        {% for diam in diametros %}
+            <h3>Para DIÁMETRO: {{ diam }}</h3>
+            <label>Seleccione el GRADO DE ACERO:</label>
+            <select name="acero_{{ diam }}">
+                {% for item in acero[diam] %}
+                    <option value="{{ item }}">{{ item }}</option>
+                {% endfor %}
+            </select>
+            <br><br>
+        {% endfor %}
+        <button type="submit">Continuar</button>
+    </form>
+</body>
+</html>
+
