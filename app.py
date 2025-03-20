@@ -898,7 +898,7 @@ def flujo_h_seleccion():
         seleccion_str = ",".join(seleccionados)
         return redirect(url_for("flujo_h_cantidades", materiales=seleccion_str))
     else:
-        return render_template("flujo_h_seleccion.html", materiales=materiales, df_html=df_html)
+        return render_template("flujo_h_seleccion.html", materiales=materiales)
 
 @app.route("/flujo_h/cantidades", methods=["GET", "POST"])
 def flujo_h_cantidades():
