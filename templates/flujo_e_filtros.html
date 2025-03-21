@@ -13,60 +13,37 @@
             Para DIÁMETRO: {{ diam }}
           </div>
           <div class="card-body">
-            {# Filtro TIPO #}
             <div class="mb-3">
               <label class="form-label">Selecciona uno o más TIPO:</label>
-              {% if filtros[diam].tipos|length == 1 and filtros[diam].tipos[0]|upper == "TODOS" %}
-                <input type="hidden" name="tipo_{{ diam }}" value="TODOS">
-              {% else %}
-                <select name="tipo_{{ diam }}" multiple class="form-select" size="5">
-                  {% for tipo in filtros[diam].tipos %}
-                    <option value="{{ tipo }}">{{ tipo }}</option>
-                  {% endfor %}
-                </select>
-              {% endif %}
+              <select name="tipo_{{ diam }}" multiple class="form-select" size="5">
+                {% for tipo in filtros[diam].tipos %}
+                  <option value="{{ tipo }}">{{ tipo }}</option>
+                {% endfor %}
+              </select>
             </div>
-            
-            {# Filtro GRADO DE ACERO #}
             <div class="mb-3">
               <label class="form-label">GRADO DE ACERO:</label>
-              {% if filtros[diam].acero|length == 1 and (filtros[diam].acero[0]|upper == "TODOS" or filtros[diam].acero[0] == "Seleccionar") %}
-                <input type="hidden" name="acero_{{ diam }}" value="{{ filtros[diam].acero[0] }}">
-              {% else %}
-                <select name="acero_{{ diam }}" class="form-select">
-                  {% for item in filtros[diam].acero %}
-                    <option value="{{ item }}">{{ item }}</option>
-                  {% endfor %}
-                </select>
-              {% endif %}
+              <select name="acero_{{ diam }}" class="form-select">
+                {% for item in filtros[diam].acero %}
+                  <option value="{{ item }}">{{ item }}</option>
+                {% endfor %}
+              </select>
             </div>
-            
-            {# Filtro GRADO DE ACERO CUPLA #}
             <div class="mb-3">
-              <label class="form-label">GRADO DE ACERO:</label>
-              {% if filtros[diam].acero|length == 1 and filtros[diam].acero[0]|upper == "TODOS" %}
-                <input type="hidden" name="acero_{{ diam }}" value="TODOS">
-              {% else %}
-                <select name="acero_{{ diam }}" class="form-select">
-                  {% for item in filtros[diam].acero %}
-                    <option value="{{ item }}">{{ item }}</option>
-                  {% endfor %}
-                </select>
-              {% endif %}
+              <label class="form-label">GRADO DE ACERO CUPLA:</label>
+              <select name="acero_cup_{{ diam }}" class="form-select">
+                {% for item in filtros[diam].acero_cup %}
+                  <option value="{{ item }}">{{ item }}</option>
+                {% endfor %}
+              </select>
             </div>
-            
-            {# Filtro TIPO DE CUPLA #}
             <div class="mb-3">
               <label class="form-label">TIPO DE CUPLA:</label>
-              {% if filtros[diam].tipo_cup|length == 1 and filtros[diam].tipo_cup[0]|upper == "TODOS" %}
-                <input type="hidden" name="tipo_cup_{{ diam }}" value="TODOS">
-              {% else %}
-                <select name="tipo_cup_{{ diam }}" class="form-select">
-                  {% for item in filtros[diam].tipo_cup %}
-                    <option value="{{ item }}">{{ item }}</option>
-                  {% endfor %}
-                </select>
-              {% endif %}
+              <select name="tipo_cup_{{ diam }}" class="form-select">
+                {% for item in filtros[diam].tipo_cup %}
+                  <option value="{{ item }}">{{ item }}</option>
+                {% endfor %}
+              </select>
             </div>
           </div>
         </div>
