@@ -11,8 +11,12 @@
       {{ df.to_html(classes="table table-bordered", index=False) | safe }}
     </div>
   {% endfor %}
+  <div class="text-center mt-4">
+    <a href="{{ url_for('export_excel') }}" class="btn btn-success">Exportar a Excel</a>
+  </div>
 </div>
 {% endblock %}
+
 
 
 
