@@ -43,12 +43,12 @@
             
             {# Filtro GRADO DE ACERO CUPLA #}
             <div class="mb-3">
-              <label class="form-label">GRADO DE ACERO CUPLA:</label>
-              {% if filtros[diam].acero_cup|length == 1 and (filtros[diam].acero_cup[0]|upper == "TODOS" or filtros[diam].acero_cup[0] == "Seleccionar") %}
-                <input type="hidden" name="acero_cup_{{ diam }}" value="{{ filtros[diam].acero_cup[0] }}">
+              <label class="form-label">GRADO DE ACERO:</label>
+              {% if filtros[diam].acero|length == 1 and filtros[diam].acero[0]|upper == "TODOS" %}
+                <input type="hidden" name="acero_{{ diam }}" value="TODOS">
               {% else %}
-                <select name="acero_cup_{{ diam }}" class="form-select">
-                  {% for item in filtros[diam].acero_cup %}
+                <select name="acero_{{ diam }}" class="form-select">
+                  {% for item in filtros[diam].acero %}
                     <option value="{{ item }}">{{ item }}</option>
                   {% endfor %}
                 </select>
