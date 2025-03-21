@@ -951,6 +951,34 @@ def flujo_h_cantidades():
 def flujo_final():
     return render_template("flujo_final.html", materiales_finales=materiales_finales)
 
+#====================================
+# EXPORTAR AL EXCEL
+#====================================
+
+@app.route("/export_excel")
+def export_excel():
+    import io
+    from flask import send_file
+
+    # Combina todos los DataFrames en uno solo, agregando una columna que indique el flujo
+    combined_df = pd.concat([df.assign(Flujo=flow) for flow, df in materiales_finales], ignore_index=True)
+    
+    # Crea un buffer en memoria para guardar el Excel
+    output = io.BytesIO()
+    writer = pd.ExcelWriter(output, engine='xlsxwriter')
+    
+    # Escribe el DataFrame combinado en una sola hoja
+    combined_df.to_excel(writer, sheet_name="Materiales Consolidados", index=False)
+    writer.save()
+    output.seek(0)
+    
+    return send_file(
+        output,
+        attachment_filename="materiales_consolidados.xlsx",
+        as_attachment=True,
+        mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
+
 
 if __name__ == "__main__":
     app.run(debug=True)
