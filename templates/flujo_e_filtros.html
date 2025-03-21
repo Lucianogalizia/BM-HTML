@@ -13,37 +13,64 @@
             Para DIÁMETRO: {{ diam }}
           </div>
           <div class="card-body">
+            {# Filtro TIPO (múltiple) #}
             <div class="mb-3">
               <label class="form-label">Selecciona uno o más TIPO:</label>
-              <select name="tipo_{{ diam }}" multiple class="form-select" size="5">
-                {% for tipo in filtros[diam].tipos %}
-                  <option value="{{ tipo }}">{{ tipo }}</option>
-                {% endfor %}
-              </select>
+              {% if filtros[diam].tipos|length == 1 and filtros[diam].tipos[0]|upper == "TODOS" %}
+                <input type="hidden" name="tipo_{{ diam }}" value="TODOS">
+                <p class="form-control-plaintext">TODOS</p>
+              {% else %}
+                <select name="tipo_{{ diam }}" multiple class="form-select" size="5">
+                  {% for tipo in filtros[diam].tipos %}
+                    <option value="{{ tipo }}">{{ tipo }}</option>
+                  {% endfor %}
+                </select>
+              {% endif %}
             </div>
+            
+            {# Filtro GRADO DE ACERO #}
             <div class="mb-3">
               <label class="form-label">GRADO DE ACERO:</label>
-              <select name="acero_{{ diam }}" class="form-select">
-                {% for item in filtros[diam].acero %}
-                  <option value="{{ item }}">{{ item }}</option>
-                {% endfor %}
-              </select>
+              {% if filtros[diam].acero|length == 1 and filtros[diam].acero[0]|upper == "TODOS" %}
+                <input type="hidden" name="acero_{{ diam }}" value="TODOS">
+                <p class="form-control-plaintext">TODOS</p>
+              {% else %}
+                <select name="acero_{{ diam }}" class="form-select">
+                  {% for item in filtros[diam].acero %}
+                    <option value="{{ item }}">{{ item }}</option>
+                  {% endfor %}
+                </select>
+              {% endif %}
             </div>
+            
+            {# Filtro GRADO DE ACERO CUPLA #}
             <div class="mb-3">
               <label class="form-label">GRADO DE ACERO CUPLA:</label>
-              <select name="acero_cup_{{ diam }}" class="form-select">
-                {% for item in filtros[diam].acero_cup %}
-                  <option value="{{ item }}">{{ item }}</option>
-                {% endfor %}
-              </select>
+              {% if filtros[diam].acero_cup|length == 1 and filtros[diam].acero_cup[0]|upper == "TODOS" %}
+                <input type="hidden" name="acero_cup_{{ diam }}" value="TODOS">
+                <p class="form-control-plaintext">TODOS</p>
+              {% else %}
+                <select name="acero_cup_{{ diam }}" class="form-select">
+                  {% for item in filtros[diam].acero_cup %}
+                    <option value="{{ item }}">{{ item }}</option>
+                  {% endfor %}
+                </select>
+              {% endif %}
             </div>
+            
+            {# Filtro TIPO DE CUPLA #}
             <div class="mb-3">
               <label class="form-label">TIPO DE CUPLA:</label>
-              <select name="tipo_cup_{{ diam }}" class="form-select">
-                {% for item in filtros[diam].tipo_cup %}
-                  <option value="{{ item }}">{{ item }}</option>
-                {% endfor %}
-              </select>
+              {% if filtros[diam].tipo_cup|length == 1 and filtros[diam].tipo_cup[0]|upper == "TODOS" %}
+                <input type="hidden" name="tipo_cup_{{ diam }}" value="TODOS">
+                <p class="form-control-plaintext">TODOS</p>
+              {% else %}
+                <select name="tipo_cup_{{ diam }}" class="form-select">
+                  {% for item in filtros[diam].tipo_cup %}
+                    <option value="{{ item }}">{{ item }}</option>
+                  {% endfor %}
+                </select>
+              {% endif %}
             </div>
           </div>
         </div>
@@ -55,6 +82,7 @@
   </div>
 </div>
 {% endblock %}
+
 
 
 
