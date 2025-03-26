@@ -953,8 +953,8 @@ def flujo_h_cantidades():
 # ===================================
 @app.route("/flujo_final", methods=["GET"])
 def flujo_final():
-    global alertas
-    return render_template("flujo_final.html", materiales_finales=materiales_finales,alertas=alertas)
+    
+    return render_template("flujo_final.html", materiales_finales=materiales_finales)
 
 #====================================
 # EXPORTAR AL EXCEL
