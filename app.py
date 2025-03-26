@@ -10,7 +10,7 @@ BASE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "materiales"
 
 # Variable global para almacenar resultados de cada flujo
 materiales_finales = []
-alertas = []
+
 
 # Función auxiliar para renombrar columnas
 def renombrar_columnas(df):
@@ -488,38 +488,6 @@ def flujo_c_cantidades():
         final_df = df[final_condition]
         final_df_renombrado = renombrar_columnas(final_df)
         materiales_finales.append(("FLUJO C", final_df_renombrado))
-
-        # =========================
-        # VERIFICACIÓN DE ALERTAS
-        # =========================
-        # Recorremos final_df (el original, no renombrado) para chequear "DIÁMETRO" y "TIPO"
-        # Ojo a los nombres de columna exactos que usas en tu Excel
-        for idx, row in final_df.iterrows():
-            diametro = str(row.get("DIÁMETRO", "")).strip()
-            tipo = str(row.get("TIPO", "")).strip()
-
-            # Caso 1: 2 7/8"_EU_6.5_J55 + Revestido interior_ZPP80 o Revestido int._ZPP80/ext.
-            if (
-                diametro == '2 7/8"_EU_6.5_J55'
-                and tipo in ['REVESTIDO INTERIOR_ZPP80', 'REVESTIDO INT.ZPP80/EXT. ']
-            ):
-                alertas.append(
-                    'Insertable_20-150-RHBC_ 1 1/2" (Zapato de 2 3/8"_solicitar a PECOM) '
-                    'o TH de 1 3/4" con cupla rebajada.'
-                )
-
-            # Caso 2: 2 3/8"_NU_4.6_J55 + Desnudo
-            if (
-                diametro == '2 3/8"_NU_4.6_J55'
-                and tipo == 'DESNUDO'
-            ):
-                alertas.append(
-                    'Insertable_20-150-RHBC_ 1 1/2" (Zapato de 2 3/8"_solicitar a PECOM) '
-                    'o TH de 1 3/4" con cupla rebajada. '
-                    'Accesorios de superficie de 1 1/4"; vástago 1 1/4"; no hay stop leak; '
-                    'PAG (5 1/2"-3 1/2" - cambiar RAMs- y de 3 1/2" a 2 3/8" -nueva); '
-                    'Paker mecánico solicitado a CIA (SBL; TEXPROIL).'
-                )
         
         return redirect(url_for("flujo_d"))
     else:
