@@ -501,7 +501,7 @@ def flujo_c_cantidades():
             # Caso 1: 2 7/8"_EU_6.5_J55 + Revestido interior_ZPP80 o Revestido int._ZPP80/ext.
             if (
                 diametro == '2 7/8"_EU_6.5_J55'
-                and tipo in ['Revestido interior_ZPP80', 'Revestido int._ZPP80/ext.']
+                and tipo in ['REVESTIDO INTERIOR_ZPP80', 'REVESTIDO INT.ZPP80/EXT. ']
             ):
                 alertas.append(
                     'Insertable_20-150-RHBC_ 1 1/2" (Zapato de 2 3/8"_solicitar a PECOM) '
@@ -511,7 +511,7 @@ def flujo_c_cantidades():
             # Caso 2: 2 3/8"_NU_4.6_J55 + Desnudo
             if (
                 diametro == '2 3/8"_NU_4.6_J55'
-                and tipo == 'Desnudo'
+                and tipo == 'DESNUDO'
             ):
                 alertas.append(
                     'Insertable_20-150-RHBC_ 1 1/2" (Zapato de 2 3/8"_solicitar a PECOM) '
