@@ -10,6 +10,7 @@ BASE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "materiales"
 
 # Variable global para almacenar resultados de cada flujo
 materiales_finales = []
+alertas = []
 
 # Función auxiliar para renombrar columnas
 def renombrar_columnas(df):
@@ -446,6 +447,7 @@ def flujo_c_diacsg():
 
 @app.route("/flujo_c/cantidades", methods=["GET", "POST"])
 def flujo_c_cantidades():
+    global alertas
     diametros_str = request.args.get("diametros", "")
     selected_diametros = diametros_str.split(",") if diametros_str else []
     tipos_json = request.args.get("tipos", "{}")
@@ -983,6 +985,7 @@ def flujo_h_cantidades():
 # ===================================
 @app.route("/flujo_final", methods=["GET"])
 def flujo_final():
+    global alertas
     return render_template("flujo_final.html", materiales_finales=materiales_finales,alertas=alertas)
 
 #====================================
