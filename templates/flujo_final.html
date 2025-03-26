@@ -5,27 +5,12 @@
 {% block content %}
 <div class="container">
   <h1 class="text-center mb-4">Flujo Final: Materiales Consolidados</h1>
-
-  <!-- Muestra las tablas de cada flujo -->
   {% for flow, df in materiales_finales %}
     <h2>{{ flow }}</h2>
     <div class="table-responsive">
       {{ df.to_html(classes="table table-bordered", index=False) | safe }}
     </div>
   {% endfor %}
-
-  <!-- Sección de alertas -->
-  {% if alertas %}
-    <div class="alert alert-danger mt-4" role="alert">
-      <h4 class="alert-heading">Alertas</h4>
-      <ul>
-      {% for alerta in alertas %}
-        <li>{{ alerta }}</li>
-      {% endfor %}
-      </ul>
-    </div>
-  {% endif %}
-
   <div class="text-center mt-4">
     <a href="{{ url_for('export_excel') }}" class="btn btn-success">Exportar a Excel</a>
   </div>
