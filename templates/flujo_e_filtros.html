@@ -14,7 +14,7 @@
           </div>
           <div class="card-body">
             <div class="mb-3">
-              <label for="tipo_{{ diam }}" class="form-label">Selecciona uno o más TIPO:</label>
+              <label for="tipo_{{ diam }}" class="form-label">Selecciona uno o más <strong>TIPO</strong>:</label>
               <select
                 name="tipo_{{ diam }}"
                 id="tipo_{{ diam }}"
@@ -30,7 +30,7 @@
               </select>
             </div>
             <div class="mb-3">
-              <label for="acero_{{ diam }}" class="form-label">GRADO DE ACERO:</label>
+              <label for="acero_{{ diam }}" class="form-label"><strong>GRADO DE ACERO</strong>:</label>
               <select
                 name="acero_{{ diam }}"
                 id="acero_{{ diam }}"
@@ -45,7 +45,7 @@
               </select>
             </div>
             <div class="mb-3">
-              <label for="acero_cup_{{ diam }}" class="form-label">GRADO DE ACERO CUPLA:</label>
+              <label for="acero_cup_{{ diam }}" class="form-label"><strong>GRADO DE ACERO CUPLA</strong>:</label>
               <select
                 name="acero_cup_{{ diam }}"
                 id="acero_cup_{{ diam }}"
@@ -60,7 +60,7 @@
               </select>
             </div>
             <div class="mb-3">
-              <label for="tipo_cup_{{ diam }}" class="form-label">TIPO DE CUPLA:</label>
+              <label for="tipo_cup_{{ diam }}" class="form-label"><strong>TIPO DE CUPLA</strong>:</label>
               <select
                 name="tipo_cup_{{ diam }}"
                 id="tipo_cup_{{ diam }}"
@@ -75,70 +75,73 @@
           </div>
         </div>
       {% endfor %}
-      <div class="text-center">
-        <button type="submit" class="btn btn-primary">Aplicar Filtros</button>
+
+      <div class="text-center mb-5">
+        <button type="submit" class="btn btn-primary btn-lg">Aplicar Filtros</button>
       </div>
     </form>
   </div>
 </div>
+{% endblock %}
 
+
+{% block scripts %}
 <script>
+// Espera a que el DOM esté listo
 document.addEventListener("DOMContentLoaded", function(){
-  // Lista de diámetros seleccionados en el backend
+  // 1) Obtenemos la lista de diámetros desde el servidor (Jinja → JS)
   const diameters = {{ selected_diametros|tojson }};
 
-  // Función para repoblar <select> múltiple
-  function populateMultiple(selectEl, options) {
-    selectEl.innerHTML = "";
+  // 2) Funciones auxiliares para repoblar selects
+  function populateMultiple(el, options) {
+    el.innerHTML = "";
     options.forEach(v => {
-      const opt = document.createElement("option");
-      opt.value = v; opt.text = v;
-      selectEl.appendChild(opt);
+      const o = document.createElement("option");
+      o.value = v; o.text = v;
+      el.appendChild(o);
     });
   }
-
-  // Función para repoblar <select> simple con opción por defecto
-  function populateSingle(selectEl, options) {
-    selectEl.innerHTML = "";
+  function populateSingle(el, options) {
+    el.innerHTML = "";
     const placeholder = document.createElement("option");
     placeholder.value = ""; placeholder.text = "Seleccionar";
-    selectEl.appendChild(placeholder);
+    el.appendChild(placeholder);
     options.forEach(v => {
-      const opt = document.createElement("option");
-      opt.value = v; opt.text = v;
-      selectEl.appendChild(opt);
+      const o = document.createElement("option");
+      o.value = v; o.text = v;
+      el.appendChild(o);
     });
   }
 
-  // Recarga todas las listas en cascada
+  // 3) Lógica de cascade filtering
   function updateFilters() {
     const params = new URLSearchParams();
-
-    // Añadimos siempre los diámetros
+    // Siempre enviamos todos los diámetros
     diameters.forEach(d => params.append("diametros", d));
 
-    // Para cada diámetro, añadimos los valores de TIPO, ACERO y ACERO_CUP
+    // Para cada diámetro, añadimos TIPO(s), ACERO, ACERO_CUP
     diameters.forEach(d => {
-      // TIPO (múltiple)
-      const tipoSel = document.getElementById(`tipo_${d}`);
-      Array.from(tipoSel.selectedOptions)
-           .map(o => o.value)
-           .filter(v => v)
-           .forEach(v => params.append("tipos", v));
+      // TIPO (multi-select)
+      const tipoEl = document.getElementById(`tipo_${d}`);
+      Array.from(tipoEl.selectedOptions)
+           .map(o=>o.value)
+           .filter(v=>v)
+           .forEach(v=> params.append("tipos", v));
 
-      // ACERO (simple)
-      const aceroSel = document.getElementById(`acero_${d}`);
-      if (aceroSel.value) params.append("aceros", aceroSel.value);
+      // ACERO
+      const aceroEl = document.getElementById(`acero_${d}`);
+      if (aceroEl.value) params.append("aceros", aceroEl.value);
 
-      // ACERO_CUP (simple)
-      const acCupSel = document.getElementById(`acero_cup_${d}`);
-      if (acCupSel.value) params.append("aceros_cup", acCupSel.value);
+      // ACERO_CUP
+      const acCupEl = document.getElementById(`acero_cup_${d}`);
+      if (acCupEl.value) params.append("aceros_cup", acCupEl.value);
     });
 
-    // Llamada AJAX a nuestro endpoint de cascade filtering
+    // 4) Fetch al endpoint que devuelve todas las listas
     fetch(`/api/flujo_e/filters_all?${params.toString()}`)
-      .then(response => response.json())
+      .then(r => r.json())
       .then(data => {
+        // 5) Repoblamos cada select de cada diámetro
         diameters.forEach(d => {
           populateMultiple(
             document.getElementById(`tipo_${d}`),
@@ -157,10 +160,11 @@ document.addEventListener("DOMContentLoaded", function(){
             data.tipo_cup
           );
         });
-      });
+      })
+      .catch(err => console.error("Error en cascade filtering:", err));
   }
 
-  // Asociar evento 'change' a los selects que disparan la cascada
+  // 6) Enlazamos el evento 'change' a los selects que disparan la cascada
   diameters.forEach(d => {
     ["tipo", "acero", "acero_cup"].forEach(field => {
       const el = document.getElementById(`${field}_${d}`);
@@ -170,6 +174,7 @@ document.addEventListener("DOMContentLoaded", function(){
 });
 </script>
 {% endblock %}
+
 
 
 
