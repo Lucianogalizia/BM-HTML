@@ -91,13 +91,9 @@
 {% block scripts %}
 <script>
 document.addEventListener("DOMContentLoaded", () => {
-  // 1) array de diámetros que vino del servidor
   const diameters = {{ selected_diametros|tojson }};
-
-  // 2) todos los selects con clase "cascade"
   const cascadeEls = Array.from(document.querySelectorAll('.cascade'));
 
-  // 3) función genérica para repoblar un <select>
   function populate(el, opts, multiple) {
     el.innerHTML = "";
     if (!multiple) {
@@ -114,12 +110,10 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // 4) función que lee los valores seleccionados y consulta al backend
   function updateFilters() {
     const params = new URLSearchParams();
-    // enviamos todos los diámetros
     diameters.forEach(d => params.append("diametros", d));
-    // enviamos para cada select su field y valor(es)
+
     cascadeEls.forEach(el => {
       const field = el.dataset.field;
       if (el.multiple) {
@@ -135,7 +129,6 @@ document.addEventListener("DOMContentLoaded", () => {
     fetch(`/api/flujo_e/filters_all?${params.toString()}`)
       .then(res => res.json())
       .then(js => {
-        // repoblamos cada select con lo que venga del servidor
         cascadeEls.forEach(el => {
           const opts = js[el.dataset.field] || [];
           populate(el, opts, el.multiple);
@@ -144,14 +137,12 @@ document.addEventListener("DOMContentLoaded", () => {
       .catch(err => console.error("Error cascada:", err));
   }
 
-  // 5) asociamos el evento change a todos los selects .cascade
   cascadeEls.forEach(el => el.addEventListener("change", updateFilters));
-
-  // 6) inicializamos la primera carga
   updateFilters();
 });
 </script>
 {% endblock %}
+
 
 
 
