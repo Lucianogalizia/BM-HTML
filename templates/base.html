@@ -4,39 +4,27 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Mi Aplicación{% endblock %}</title>
-
     <!-- Bootstrap CSS -->
-    <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
-      rel="stylesheet"
-      integrity="sha384-9ndCyUa6YlDE2P+U0R+gW0pihEfzU2e3Sa+8mMo5LmZ6X53IySdO5Jk3S7tBTv1p"
-      crossorigin="anonymous"
-    >
-
+    <link href=https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css rel="stylesheet">
     <!-- Tu hoja de estilos personalizada -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/estilos.css') }}">
-
-    {# Permite que tus plantillas hijas inyecten CSS o meta adicionales sin tocar la interfaz #}
-    {% block head %}{% endblock %}
 </head>
 <body>
     <!-- Barra de navegación -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
       <div class="container">
         <a class="navbar-brand" href="{{ url_for('index') }}">Mi Aplicación</a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
-                data-bs-target="#navbarNav" aria-controls="navbarNav"
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" 
+                data-bs-target="#navbarNav" aria-controls="navbarNav" 
                 aria-expanded="false" aria-label="Toggle navigation">
           <span class="navbar-toggler-icon"></span>
         </button>
-        <div class="collapse navbar-collapse" id="navbarNav">
-          <!-- Enlaces si los necesitás -->
-        </div>
       </div>
     </nav>
     
     <main class="container my-5">
-        {% block content %}{% endblock %}
+        {% block content %}
+        {% endblock %}
     </main>
     
     <footer class="bg-light text-center py-3">
@@ -45,22 +33,8 @@
         </div>
     </footer>
     
-    <!-- Bootstrap JS Bundle (Popper incluido) -->
-    <script
-      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"
-      integrity="sha384-ENjdO4Dr2bkBIFxQpeoY9EML+2+P3aLELU9KSL0sibVcOQVnNQ+8nbTov4+1p"
-      crossorigin="anonymous"
-    ></script>
-
-    <!-- jQuery (necesario para cascade filtering) -->
-    <script
-      src="https://code.jquery.com/jquery-3.6.0.min.js"
-      integrity="sha256-/xUj+3OJ+Yp+2j6kO2eaZ2kk9z1PpNNQ+B+CF5F5xU="
-      crossorigin="anonymous"
-    ></script>
-
-    {# Aquí se inyectará el JavaScript de cascada desde la plantilla hija #}
-    {% block scripts %}{% endblock %}
+    <!-- Bootstrap JS Bundle -->
+    <script src=https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js></script>
 </body>
 </html>
 
