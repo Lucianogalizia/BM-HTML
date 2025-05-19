@@ -1,5 +1,4 @@
 {% extends "base.html" %}
-
 {% block title %}Flujo E: Configuración de Filtros{% endblock %}
 
 {% block content %}
@@ -8,11 +7,13 @@
     <h1 class="text-center mb-4">Flujo E: Configuración de Filtros</h1>
     <form id="filtrosForm" method="POST">
       {% for diam in selected_diametros %}
+        {# Normalize diam if you use it in IDs, aquí sencillo sin slug #}
         <div class="card mb-3">
           <div class="card-header">
             Para DIÁMETRO: {{ diam }}
           </div>
           <div class="card-body">
+
             <!-- TIPO -->
             <div class="mb-3">
               <label class="form-label"><strong>TIPO</strong>:</label>
@@ -29,6 +30,7 @@
                 {% endfor %}
               </select>
             </div>
+
             <!-- GRADO DE ACERO -->
             <div class="mb-3">
               <label class="form-label"><strong>GRADO DE ACERO</strong>:</label>
@@ -44,6 +46,7 @@
                 {% endfor %}
               </select>
             </div>
+
             <!-- GRADO DE ACERO CUPLA -->
             <div class="mb-3">
               <label class="form-label"><strong>GRADO DE ACERO CUPLA</strong>:</label>
@@ -59,6 +62,7 @@
                 {% endfor %}
               </select>
             </div>
+
             <!-- TIPO DE CUPLA -->
             <div class="mb-3">
               <label class="form-label"><strong>TIPO DE CUPLA</strong>:</label>
@@ -74,6 +78,7 @@
                 {% endfor %}
               </select>
             </div>
+
           </div>
         </div>
       {% endfor %}
@@ -91,43 +96,47 @@
 {% block scripts %}
 <script>
 document.addEventListener("DOMContentLoaded", () => {
+  // Lista de diámetros del servidor
   const diameters = {{ selected_diametros|tojson }};
-  const cascadeEls = Array.from(document.querySelectorAll('.cascade'));
+  // Selecciona TODOS los selects con clase 'cascade'
+  const cascadeEls = [...document.querySelectorAll('.cascade')];
 
+  // Función genérica de repoblado
   function populate(el, opts, multiple) {
     el.innerHTML = "";
     if (!multiple) {
-      const placeholder = document.createElement("option");
-      placeholder.value = "";
-      placeholder.text = "Seleccionar";
-      el.appendChild(placeholder);
+      const ph = document.createElement("option");
+      ph.value = ""; ph.text = "Seleccionar";
+      el.appendChild(ph);
     }
     opts.forEach(v => {
       const o = document.createElement("option");
-      o.value = v;
-      o.text = v;
+      o.value = o.text = v;
       el.appendChild(o);
     });
   }
 
+  // Dispara la recarga de filtros
   function updateFilters() {
     const params = new URLSearchParams();
+    // Siempre enviamos todos los diámetros
     diameters.forEach(d => params.append("diametros", d));
 
+    // Para cada select, leemos su data-field y sus valores
     cascadeEls.forEach(el => {
       const field = el.dataset.field;
       if (el.multiple) {
-        Array.from(el.selectedOptions)
-             .map(o => o.value)
-             .filter(v => v)
-             .forEach(v => params.append(field, v));
+        [...el.selectedOptions]
+          .map(o => o.value)
+          .filter(v => v)
+          .forEach(v => params.append(field, v));
       } else if (el.value) {
         params.append(field, el.value);
       }
     });
 
-    fetch(`/api/flujo_e/filters_all?${params.toString()}`)
-      .then(res => res.json())
+    fetch(`/api/flujo_e/filters_all?${params}`)
+      .then(r => r.json())
       .then(js => {
         cascadeEls.forEach(el => {
           const opts = js[el.dataset.field] || [];
@@ -137,11 +146,13 @@ document.addEventListener("DOMContentLoaded", () => {
       .catch(err => console.error("Error cascada:", err));
   }
 
+  // Asocia evento change y carga inicial
   cascadeEls.forEach(el => el.addEventListener("change", updateFilters));
   updateFilters();
 });
 </script>
 {% endblock %}
+
 
 
 
