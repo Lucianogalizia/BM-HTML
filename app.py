@@ -619,75 +619,153 @@ def flujo_e_seleccion():
     else:
         return render_template("flujo_e_seleccion.html", unique_diametros=unique_diametros)
 
+@app.route("/api/flujo_e/filters_all", methods=["GET"])
+def api_flujo_e_filters_all():
+    """
+    Dado el estado actual de selección:
+      - diametros (lista)
+      - tipos (lista)
+      - aceros (lista)
+      - aceros_cup (lista)
+    devuelve JSON con las listas válidas para:
+      diametros, tipos, aceros, aceros_cup, tipo_cup
+    """
+    # 1) Cargar y preparar DataFrame
+    file_path = os.path.join(BASE_DIR, "baja varillas.xlsx")
+    df = pd.read_excel(file_path)
+    df.columns = df.columns.str.strip()
+    df["DIÁMETRO"] = df["DIÁMETRO"].astype(str).str.strip()
+
+    # 2) Leer parámetros de consulta
+    diam_list  = request.args.getlist("diametros")      # ?diametros=3/4&diametros=1
+    tipo_list  = request.args.getlist("tipos")          # ?tipos=LISAS&tipos=...
+    acero_list = request.args.getlist("aceros")         # ?aceros=D4142
+    cup_list   = request.args.getlist("aceros_cup")     # ?aceros_cup=T
+
+    # 3) Filtrar progresivamente en cascada
+    #   * Siempre incluimos la opción "TODOS" para no romper lógica
+    if diam_list:
+        df = df[df["DIÁMETRO"].isin(diam_list + ["TODOS"])]
+
+    # Todas las opciones de TIPO disponibles en este subconjunto
+    all_tipos = sorted({
+        v for v in df["TIPO"].dropna().unique()
+        if str(v).upper() != "TODOS"
+    })
+    if tipo_list:
+        df = df[df["TIPO"].isin(tipo_list + ["TODOS"])]
+
+    # Todas las opciones de GRADO DE ACERO
+    all_aceros = sorted({
+        v for v in df.get("GRADO DE ACERO", pd.Series()).dropna().unique()
+        if str(v).upper() != "TODOS"
+    })
+    if acero_list:
+        df = df[df["GRADO DE ACERO"].isin(acero_list + ["TODOS"])]
+
+    # Todas las opciones de GRADO DE ACERO CUPLA
+    all_aceros_cup = sorted({
+        v for v in df.get("GRADO DE ACERO CUPLA", pd.Series()).dropna().unique()
+        if str(v).upper() != "TODOS"
+    })
+    if cup_list:
+        df = df[df["GRADO DE ACERO CUPLA"].isin(cup_list + ["TODOS"])]
+
+    # Finalmente, las opciones de TIPO DE CUPLA válidas
+    all_tipo_cup = sorted({
+        v for v in df.get("TIPO DE CUPLA", pd.Series()).dropna().unique()
+        if str(v).upper() != "TODOS"
+    })
+
+    # 4) Construir y devolver el JSON
+    return jsonify({
+        "diametros":  sorted({
+            v for v in df["DIÁMETRO"].dropna().unique()
+            if str(v).upper() != "TODOS"
+        }),
+        "tipos":      all_tipos,
+        "aceros":     all_aceros,
+        "aceros_cup": all_aceros_cup,
+        "tipo_cup":   all_tipo_cup
+    })
+
+
+# --------------------------------------
+# FLUJO E: selección de filtros y POST
+# --------------------------------------
 @app.route("/flujo_e/filtros", methods=["GET", "POST"])
 def flujo_e_filtros():
+    """
+    GET  -> muestra los selects iniciales con todas las opciones por DIÁMETRO.
+    POST -> recoge los filtros elegidos y redirige a /flujo_e/cantidades
+    """
+    # 1) Leer los diámetros pasados por querystring
     diametros_str = request.args.get("diametros", "")
     selected_diametros = diametros_str.split(",") if diametros_str else []
+
+    # 2) Cargar DataFrame base
     try:
         file_path = os.path.join(BASE_DIR, "baja varillas.xlsx")
         df = pd.read_excel(file_path)
         df.columns = df.columns.str.strip()
         df["DIÁMETRO"] = df["DIÁMETRO"].astype(str).str.strip()
     except Exception as e:
-        return f"Error al cargar el Excel: {e}"
-    # Para cada DIÁMETRO, se obtienen las opciones para los filtros en cascada
+        return f"Error al cargar el Excel: {e}", 500
+
+    # 3) Construir el dict 'filtros' con las opciones iniciales (sin cascada)
     filtros = {}
     for diam in selected_diametros:
         subset = df[df["DIÁMETRO"] == diam]
-        # Filtro TIPO
-        tipos = sorted([x for x in subset["TIPO"].dropna().unique() if x.upper() != "TODOS"])
-        if not tipos:
-            tipos = ["TODOS"]
-        # Filtros para otras columnas (si existen)
-        acero = sorted([x for x in subset["GRADO DE ACERO"].dropna().unique() if str(x).upper() != "TODOS"]) if "GRADO DE ACERO" in subset.columns else ["Seleccionar"]
-        acero_cup = sorted([x for x in subset["GRADO DE ACERO CUPLA"].dropna().unique() if str(x).upper() != "TODOS"]) if "GRADO DE ACERO CUPLA" in subset.columns else ["Seleccionar"]
-        tipo_cup = sorted([x for x in subset["TIPO DE CUPLA"].dropna().unique() if str(x).upper() != "TODOS"]) if "TIPO DE CUPLA" in subset.columns else ["Seleccionar"]
-        filtros[diam] = {"tipos": tipos, "acero": acero, "acero_cup": acero_cup, "tipo_cup": tipo_cup}
+        # Todas las opciones de cada campo (excluyendo "TODOS")
+        tipos = sorted({v for v in subset["TIPO"].dropna().unique() if str(v).upper()!="TODOS"})
+        acero = sorted({v for v in subset.get("GRADO DE ACERO", pd.Series()).dropna().unique() if str(v).upper()!="TODOS"})
+        acero_cup = sorted({v for v in subset.get("GRADO DE ACERO CUPLA", pd.Series()).dropna().unique() if str(v).upper()!="TODOS"})
+        tipo_cup = sorted({v for v in subset.get("TIPO DE CUPLA", pd.Series()).dropna().unique() if str(v).upper()!="TODOS"})
+        filtros[diam] = {
+            "tipos":      tipos or ["TODOS"],
+            "acero":      acero or ["Seleccionar"],
+            "acero_cup":  acero_cup or ["Seleccionar"],
+            "tipo_cup":   tipo_cup or ["Seleccionar"]
+        }
+
     if request.method == "POST":
-        # Se recogen los filtros seleccionados para cada DIÁMETRO
+        # Recoger las selecciones de cada select
         all_filters = {}
         for diam in selected_diametros:
-            # Recoger el filtro de TIPO
-            tipo_sel = request.form.getlist(f"tipo_{diam}")
-            # Si se seleccionó algún valor, se crea la lista con el valor y "TODOS"
-            if tipo_sel:
-                tipo_list = tipo_sel + ["TODOS"]
-            else:
-                # Si no se seleccionó nada, dejamos la lista vacía para indicar que no se filtra por TIPO
-                tipo_list = []
-        
-            # Repetir para las otras columnas, comparando con "" o "Seleccionar"
-            ac = request.form.get(f"acero_{diam}", "")
-            if ac and ac != "Seleccionar":
-                acero_list = [ac, "TODOS"]
-            else:
-                acero_list = []
-        
-            ac_cup = request.form.get(f"acero_cup_{diam}", "")
-            if ac_cup and ac_cup != "Seleccionar":
-                acero_cup_list = [ac_cup, "TODOS"]
-            else:
-                acero_cup_list = []
-        
-            t_cup = request.form.get(f"tipo_cup_{diam}", "")
-            if t_cup and t_cup != "Seleccionar":
-                tipo_cup_list = [t_cup, "TODOS"]
-            else:
-                tipo_cup_list = []
-        
-            all_filters[diam] = {"tipo_list": tipo_list,
-                                 "acero_list": acero_list,
-                                 "acero_cup_list": acero_cup_list,
-                                 "tipo_cup_list": tipo_cup_list}
+            tipo_sel    = request.form.getlist(f"tipo_{diam}")      # multi-select
+            acero_sel   = request.form.get(f"acero_{diam}", "")
+            cup_sel     = request.form.get(f"acero_cup_{diam}", "")
+            t_cup_sel   = request.form.get(f"tipo_cup_{diam}", "")
 
-        # En lugar de procesar y mostrar el resultado, redirigimos a la etapa de ingreso de cantidades
+            # Preparar listas para el procesamiento posterior
+            tipo_list      = tipo_sel + ["TODOS"] if tipo_sel else []
+            acero_list     = [acero_sel, "TODOS"] if acero_sel and acero_sel!="Seleccionar" else []
+            acero_cup_list = [cup_sel, "TODOS"]   if cup_sel   and cup_sel  !="Seleccionar" else []
+            tipo_cup_list  = [t_cup_sel, "TODOS"] if t_cup_sel and t_cup_sel!="Seleccionar" else []
+
+            all_filters[diam] = {
+                "tipo_list":      tipo_list,
+                "acero_list":     acero_list,
+                "acero_cup_list": acero_cup_list,
+                "tipo_cup_list":  tipo_cup_list
+            }
+
+        # Serializar y redirigir a la siguiente etapa
         filtros_json = json.dumps(all_filters)
-        return redirect(url_for("flujo_e_cantidades", diametros=diametros_str, filtros=filtros_json))
-    else:
-        return render_template("flujo_e_filtros.html", selected_diametros=selected_diametros, filtros=filtros)
+        return redirect(
+            url_for("flujo_e_cantidades",
+                    diametros=diametros_str,
+                    filtros=filtros_json)
+        )
+
+    # GET → renderizamos la página con los filtros iniciales
+    return render_template(
+        "flujo_e_filtros.html",
+        selected_diametros=selected_diametros,
+        filtros=filtros
+    )
 
 
-@app.route("/flujo_e/cantidades", methods=["GET", "POST"])
 @app.route("/flujo_e/cantidades", methods=["GET", "POST"])
 def flujo_e_cantidades():
     diametros_str = request.args.get("diametros", "")
