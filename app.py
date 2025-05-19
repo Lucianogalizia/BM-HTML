@@ -738,7 +738,7 @@ def flujo_e_filtros():
             }
 
         return redirect(url_for(
-            "flujo_e_flujo_e_cantidades",
+            "flujo_e_cantidades",
             diametros=diametros_str,
             filtros=json.dumps(all_filters)
         ))
