@@ -13,10 +13,10 @@
       crossorigin="anonymous"
     >
 
-    <!-- Hoja de estilos personalizada -->
+    <!-- Tu hoja de estilos personalizada -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/estilos.css') }}">
 
-    <!-- Permite que las plantillas hijas inyecten CSS o meta adicionales -->
+    {# Permite que tus plantillas hijas inyecten CSS o meta adicionales sin tocar la interfaz #}
     {% block head %}{% endblock %}
 </head>
 <body>
@@ -52,10 +52,18 @@
       crossorigin="anonymous"
     ></script>
 
-    <!-- Bloque para scripts específicos de cada plantilla (e.g. cascade filtering) -->
+    <!-- jQuery (necesario para cascade filtering) -->
+    <script
+      src="https://code.jquery.com/jquery-3.6.0.min.js"
+      integrity="sha256-/xUj+3OJ+Yp+2j6kO2eaZ2kk9z1PpNNQ+B+CF5F5xU="
+      crossorigin="anonymous"
+    ></script>
+
+    {# Aquí se inyectará el JavaScript de cascada desde la plantilla hija #}
     {% block scripts %}{% endblock %}
 </body>
 </html>
+
 
 
 
