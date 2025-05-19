@@ -5,6 +5,8 @@ import json
 
 
 app = Flask(__name__)
+# Registrar el blueprint de Flujo E
+app.register_blueprint(flujo_e_bp)
 
 # Directorio de archivos Excel
 BASE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "materiales")
