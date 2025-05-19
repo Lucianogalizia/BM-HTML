@@ -1,163 +1,61 @@
 {% extends "base.html" %}
+
 {% block title %}Flujo E: Configuración de Filtros{% endblock %}
 
 {% block content %}
 <div class="row">
   <div class="col-md-10 offset-md-1">
     <h1 class="text-center mb-4">Flujo E: Configuración de Filtros</h1>
-    <form id="filtrosForm" method="POST">
+    <form method="POST">
       {% for diam in selected_diametros %}
-        {# Normalize diam if you use it in IDs, aquí sencillo sin slug #}
         <div class="card mb-3">
           <div class="card-header">
             Para DIÁMETRO: {{ diam }}
           </div>
           <div class="card-body">
-
-            <!-- TIPO -->
             <div class="mb-3">
-              <label class="form-label"><strong>TIPO</strong>:</label>
-              <select
-                name="tipo_{{ diam }}"
-                class="form-select cascade"
-                data-field="tipos"
-                data-diam="{{ diam }}"
-                multiple
-                size="5"
-              >
-                {% for t in filtros[diam].tipos %}
-                  <option value="{{ t }}">{{ t }}</option>
+              <label class="form-label">Selecciona uno o más TIPO:</label>
+              <select name="tipo_{{ diam }}" multiple class="form-select" size="5">
+                {% for tipo in filtros[diam].tipos %}
+                  <option value="{{ tipo }}">{{ tipo }}</option>
                 {% endfor %}
               </select>
             </div>
-
-            <!-- GRADO DE ACERO -->
             <div class="mb-3">
-              <label class="form-label"><strong>GRADO DE ACERO</strong>:</label>
-              <select
-                name="acero_{{ diam }}"
-                class="form-select cascade"
-                data-field="aceros"
-                data-diam="{{ diam }}"
-              >
-                <option value="">Seleccionar</option>
-                {% for a in filtros[diam].acero %}
-                  <option value="{{ a }}">{{ a }}</option>
+              <label class="form-label">GRADO DE ACERO:</label>
+              <select name="acero_{{ diam }}" class="form-select">
+                {% for item in filtros[diam].acero %}
+                  <option value="{{ item }}">{{ item }}</option>
                 {% endfor %}
               </select>
             </div>
-
-            <!-- GRADO DE ACERO CUPLA -->
             <div class="mb-3">
-              <label class="form-label"><strong>GRADO DE ACERO CUPLA</strong>:</label>
-              <select
-                name="acero_cup_{{ diam }}"
-                class="form-select cascade"
-                data-field="aceros_cup"
-                data-diam="{{ diam }}"
-              >
-                <option value="">Seleccionar</option>
-                {% for c in filtros[diam].acero_cup %}
-                  <option value="{{ c }}">{{ c }}</option>
+              <label class="form-label">GRADO DE ACERO CUPLA:</label>
+              <select name="acero_cup_{{ diam }}" class="form-select">
+                {% for item in filtros[diam].acero_cup %}
+                  <option value="{{ item }}">{{ item }}</option>
                 {% endfor %}
               </select>
             </div>
-
-            <!-- TIPO DE CUPLA -->
             <div class="mb-3">
-              <label class="form-label"><strong>TIPO DE CUPLA</strong>:</label>
-              <select
-                name="tipo_cup_{{ diam }}"
-                class="form-select cascade"
-                data-field="tipo_cup"
-                data-diam="{{ diam }}"
-              >
-                <option value="">Seleccionar</option>
-                {% for tc in filtros[diam].tipo_cup %}
-                  <option value="{{ tc }}">{{ tc }}</option>
+              <label class="form-label">TIPO DE CUPLA:</label>
+              <select name="tipo_cup_{{ diam }}" class="form-select">
+                {% for item in filtros[diam].tipo_cup %}
+                  <option value="{{ item }}">{{ item }}</option>
                 {% endfor %}
               </select>
             </div>
-
           </div>
         </div>
       {% endfor %}
-
       <div class="text-center">
-        <button type="submit" class="btn btn-primary btn-lg">
-          Aplicar Filtros
-        </button>
+        <button type="submit" class="btn btn-primary">Aplicar Filtros</button>
       </div>
     </form>
   </div>
 </div>
 {% endblock %}
 
-{% block scripts %}
-<script>
-document.addEventListener("DOMContentLoaded", () => {
-  const diameters  = {{ selected_diametros|tojson }};
-  const cascadeEls = [...document.querySelectorAll('.cascade')];
-
-  // Repobla un <select>, marcando las previas
-  function populate(el, opts, multiple, prev) {
-    el.innerHTML = "";
-    if (!multiple) {
-      const ph = document.createElement("option");
-      ph.value = ""; ph.text = "Seleccionar";
-      el.appendChild(ph);
-    }
-    opts.forEach(v => {
-      const o = document.createElement("option");
-      o.value = o.text = v;
-      if (multiple && prev.includes(v)) o.selected = true;
-      if (!multiple && prev === v)       o.selected = true;
-      el.appendChild(o);
-    });
-  }
-
-  function updateFilters() {
-    // 1) Guarda la selección actual POR ELEMENTO (clave = el.name)
-    const prevValues = {};
-    cascadeEls.forEach(el => {
-      if (el.multiple) {
-        prevValues[el.name] = Array.from(el.selectedOptions).map(o => o.value);
-      } else {
-        prevValues[el.name] = el.value;
-      }
-    });
-
-    // 2) Construye los params para el fetch, usando data-field
-    const params = new URLSearchParams();
-    diameters.forEach(d => params.append("diametros", d));
-    cascadeEls.forEach(el => {
-      const vals = prevValues[el.name];
-      if (el.multiple) {
-        vals.forEach(v => params.append(el.dataset.field, v));
-      } else if (vals) {
-        params.append(el.dataset.field, vals);
-      }
-    });
-
-    // 3) Llama al endpoint y repuebla cada select con su prevValues
-    fetch(`/api/flujo_e/filters_all?${params}`)
-      .then(r => r.json())
-      .then(js => {
-        cascadeEls.forEach(el => {
-          const opts = js[el.dataset.field] || [];
-          const prev = prevValues[el.name] || (el.multiple ? [] : "");
-          populate(el, opts, el.multiple, prev);
-        });
-      })
-      .catch(err => console.error("Error cascada:", err));
-  }
-
-  // 4) Asocia cambio y lanza primera carga
-  cascadeEls.forEach(el => el.addEventListener("change", updateFilters));
-  updateFilters();
-});
-</script>
-{% endblock %}
 
 
 
