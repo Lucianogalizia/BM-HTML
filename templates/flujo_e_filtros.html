@@ -6,7 +6,7 @@
 <div class="row">
   <div class="col-md-10 offset-md-1">
     <h1 class="text-center mb-4">Flujo E: Configuración de Filtros</h1>
-    <form method="POST">
+    <form id="filtrosForm" method="POST">
       {% for diam in selected_diametros %}
         <div class="card mb-3">
           <div class="card-header">
@@ -14,32 +14,59 @@
           </div>
           <div class="card-body">
             <div class="mb-3">
-              <label class="form-label">Selecciona uno o más TIPO:</label>
-              <select name="tipo_{{ diam }}" multiple class="form-select" size="5">
+              <label for="tipo_{{ diam }}" class="form-label">Selecciona uno o más TIPO:</label>
+              <select
+                name="tipo_{{ diam }}"
+                id="tipo_{{ diam }}"
+                multiple
+                size="5"
+                class="form-select cascade"
+                data-field="tipos"
+                data-diam="{{ diam }}"
+              >
                 {% for tipo in filtros[diam].tipos %}
                   <option value="{{ tipo }}">{{ tipo }}</option>
                 {% endfor %}
               </select>
             </div>
             <div class="mb-3">
-              <label class="form-label">GRADO DE ACERO:</label>
-              <select name="acero_{{ diam }}" class="form-select">
+              <label for="acero_{{ diam }}" class="form-label">GRADO DE ACERO:</label>
+              <select
+                name="acero_{{ diam }}"
+                id="acero_{{ diam }}"
+                class="form-select cascade"
+                data-field="aceros"
+                data-diam="{{ diam }}"
+              >
+                <option value="">Seleccionar</option>
                 {% for item in filtros[diam].acero %}
                   <option value="{{ item }}">{{ item }}</option>
                 {% endfor %}
               </select>
             </div>
             <div class="mb-3">
-              <label class="form-label">GRADO DE ACERO CUPLA:</label>
-              <select name="acero_cup_{{ diam }}" class="form-select">
+              <label for="acero_cup_{{ diam }}" class="form-label">GRADO DE ACERO CUPLA:</label>
+              <select
+                name="acero_cup_{{ diam }}"
+                id="acero_cup_{{ diam }}"
+                class="form-select cascade"
+                data-field="aceros_cup"
+                data-diam="{{ diam }}"
+              >
+                <option value="">Seleccionar</option>
                 {% for item in filtros[diam].acero_cup %}
                   <option value="{{ item }}">{{ item }}</option>
                 {% endfor %}
               </select>
             </div>
             <div class="mb-3">
-              <label class="form-label">TIPO DE CUPLA:</label>
-              <select name="tipo_cup_{{ diam }}" class="form-select">
+              <label for="tipo_cup_{{ diam }}" class="form-label">TIPO DE CUPLA:</label>
+              <select
+                name="tipo_cup_{{ diam }}"
+                id="tipo_cup_{{ diam }}"
+                class="form-select"
+              >
+                <option value="">Seleccionar</option>
                 {% for item in filtros[diam].tipo_cup %}
                   <option value="{{ item }}">{{ item }}</option>
                 {% endfor %}
@@ -54,7 +81,96 @@
     </form>
   </div>
 </div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function(){
+  // Lista de diámetros seleccionados en el backend
+  const diameters = {{ selected_diametros|tojson }};
+
+  // Función para repoblar <select> múltiple
+  function populateMultiple(selectEl, options) {
+    selectEl.innerHTML = "";
+    options.forEach(v => {
+      const opt = document.createElement("option");
+      opt.value = v; opt.text = v;
+      selectEl.appendChild(opt);
+    });
+  }
+
+  // Función para repoblar <select> simple con opción por defecto
+  function populateSingle(selectEl, options) {
+    selectEl.innerHTML = "";
+    const placeholder = document.createElement("option");
+    placeholder.value = ""; placeholder.text = "Seleccionar";
+    selectEl.appendChild(placeholder);
+    options.forEach(v => {
+      const opt = document.createElement("option");
+      opt.value = v; opt.text = v;
+      selectEl.appendChild(opt);
+    });
+  }
+
+  // Recarga todas las listas en cascada
+  function updateFilters() {
+    const params = new URLSearchParams();
+
+    // Añadimos siempre los diámetros
+    diameters.forEach(d => params.append("diametros", d));
+
+    // Para cada diámetro, añadimos los valores de TIPO, ACERO y ACERO_CUP
+    diameters.forEach(d => {
+      // TIPO (múltiple)
+      const tipoSel = document.getElementById(`tipo_${d}`);
+      Array.from(tipoSel.selectedOptions)
+           .map(o => o.value)
+           .filter(v => v)
+           .forEach(v => params.append("tipos", v));
+
+      // ACERO (simple)
+      const aceroSel = document.getElementById(`acero_${d}`);
+      if (aceroSel.value) params.append("aceros", aceroSel.value);
+
+      // ACERO_CUP (simple)
+      const acCupSel = document.getElementById(`acero_cup_${d}`);
+      if (acCupSel.value) params.append("aceros_cup", acCupSel.value);
+    });
+
+    // Llamada AJAX a nuestro endpoint de cascade filtering
+    fetch(`/api/flujo_e/filters_all?${params.toString()}`)
+      .then(response => response.json())
+      .then(data => {
+        diameters.forEach(d => {
+          populateMultiple(
+            document.getElementById(`tipo_${d}`),
+            data.tipos
+          );
+          populateSingle(
+            document.getElementById(`acero_${d}`),
+            data.aceros
+          );
+          populateSingle(
+            document.getElementById(`acero_cup_${d}`),
+            data.aceros_cup
+          );
+          populateSingle(
+            document.getElementById(`tipo_cup_${d}`),
+            data.tipo_cup
+          );
+        });
+      });
+  }
+
+  // Asociar evento 'change' a los selects que disparan la cascada
+  diameters.forEach(d => {
+    ["tipo", "acero", "acero_cup"].forEach(field => {
+      const el = document.getElementById(`${field}_${d}`);
+      if (el) el.addEventListener("change", updateFilters);
+    });
+  });
+});
+</script>
 {% endblock %}
+
 
 
 
