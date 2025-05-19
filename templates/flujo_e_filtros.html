@@ -8,11 +8,6 @@
     <h1 class="text-center mb-4">Flujo E: Configuración de Filtros</h1>
     <form id="filtrosForm" method="POST">
       {% for diam in selected_diametros %}
-        {# normalizamos el diámetro para usarlo en los IDs #}
-        {% set safe = diam
-             | replace('/', '_')
-             | replace(' ', '_')
-             | replace('.', '_') %}
         <div class="card mb-3">
           <div class="card-header">
             Para DIÁMETRO: {{ diam }}
@@ -20,11 +15,8 @@
           <div class="card-body">
             <!-- TIPO -->
             <div class="mb-3">
-              <label for="tipo_{{ safe }}" class="form-label">
-                Selecciona uno o más <strong>TIPO</strong>:
-              </label>
+              <label class="form-label"><strong>TIPO</strong>:</label>
               <select
-                id="tipo_{{ safe }}"
                 name="tipo_{{ diam }}"
                 class="form-select cascade"
                 data-field="tipos"
@@ -39,11 +31,8 @@
             </div>
             <!-- GRADO DE ACERO -->
             <div class="mb-3">
-              <label for="acero_{{ safe }}" class="form-label">
-                <strong>GRADO DE ACERO</strong>:
-              </label>
+              <label class="form-label"><strong>GRADO DE ACERO</strong>:</label>
               <select
-                id="acero_{{ safe }}"
                 name="acero_{{ diam }}"
                 class="form-select cascade"
                 data-field="aceros"
@@ -57,11 +46,8 @@
             </div>
             <!-- GRADO DE ACERO CUPLA -->
             <div class="mb-3">
-              <label for="acero_cup_{{ safe }}" class="form-label">
-                <strong>GRADO DE ACERO CUPLA</strong>:
-              </label>
+              <label class="form-label"><strong>GRADO DE ACERO CUPLA</strong>:</label>
               <select
-                id="acero_cup_{{ safe }}"
                 name="acero_cup_{{ diam }}"
                 class="form-select cascade"
                 data-field="aceros_cup"
@@ -75,13 +61,11 @@
             </div>
             <!-- TIPO DE CUPLA -->
             <div class="mb-3">
-              <label for="tipo_cup_{{ safe }}" class="form-label">
-                <strong>TIPO DE CUPLA</strong>:
-              </label>
+              <label class="form-label"><strong>TIPO DE CUPLA</strong>:</label>
               <select
-                id="tipo_cup_{{ safe }}"
                 name="tipo_cup_{{ diam }}"
-                class="form-select"
+                class="form-select cascade"
+                data-field="tipo_cup"
                 data-diam="{{ diam }}"
               >
                 <option value="">Seleccionar</option>
@@ -107,97 +91,68 @@
 {% block scripts %}
 <script>
 document.addEventListener("DOMContentLoaded", () => {
-  // Helper para normalizar cadenas a IDs válidos
-  function slug(d) {
-    return d.replace(/[^a-zA-Z0-9]/g, "_");
-  }
-
-  // Lista inicial de diámetros (viene del servidor)
+  // 1) array de diámetros que vino del servidor
   const diameters = {{ selected_diametros|tojson }};
 
-  // Repuebla un <select multiple>
-  function populateMultiple(el, opts) {
+  // 2) todos los selects con clase "cascade"
+  const cascadeEls = Array.from(document.querySelectorAll('.cascade'));
+
+  // 3) función genérica para repoblar un <select>
+  function populate(el, opts, multiple) {
     el.innerHTML = "";
+    if (!multiple) {
+      const placeholder = document.createElement("option");
+      placeholder.value = "";
+      placeholder.text = "Seleccionar";
+      el.appendChild(placeholder);
+    }
     opts.forEach(v => {
       const o = document.createElement("option");
-      o.value = v; o.text = v;
+      o.value = v;
+      o.text = v;
       el.appendChild(o);
     });
   }
 
-  // Repuebla un <select> de uno solo
-  function populateSingle(el, opts) {
-    el.innerHTML = "";
-    const placeholder = document.createElement("option");
-    placeholder.value = ""; placeholder.text = "Seleccionar";
-    el.appendChild(placeholder);
-    opts.forEach(v => {
-      const o = document.createElement("option");
-      o.value = v; o.text = v;
-      el.appendChild(o);
-    });
-  }
-
-  // Ejecuta la recarga en cascada leyendo los valores actuales de los selects
+  // 4) función que lee los valores seleccionados y consulta al backend
   function updateFilters() {
     const params = new URLSearchParams();
-
-    // agregamos todos los diámetros actuales
+    // enviamos todos los diámetros
     diameters.forEach(d => params.append("diametros", d));
-
-    // para cada diámetro, coleccionamos TIPO, ACERO y ACERO_CUP actuales
-    diameters.forEach(d => {
-      const id = slug(d);
-
-      const tipoEl = document.getElementById(`tipo_${id}`);
-      Array.from(tipoEl?.selectedOptions || [])
-           .map(o => o.value)
-           .filter(v => v)
-           .forEach(v => params.append("tipos", v));
-
-      const acEl = document.getElementById(`acero_${id}`);
-      if (acEl?.value) params.append("aceros", acEl.value);
-
-      const acCEl = document.getElementById(`acero_cup_${id}`);
-      if (acCEl?.value) params.append("aceros_cup", acCEl.value);
+    // enviamos para cada select su field y valor(es)
+    cascadeEls.forEach(el => {
+      const field = el.dataset.field;
+      if (el.multiple) {
+        Array.from(el.selectedOptions)
+             .map(o => o.value)
+             .filter(v => v)
+             .forEach(v => params.append(field, v));
+      } else if (el.value) {
+        params.append(field, el.value);
+      }
     });
 
     fetch(`/api/flujo_e/filters_all?${params.toString()}`)
       .then(res => res.json())
       .then(js => {
-        diameters.forEach(d => {
-          const id = slug(d);
-          populateMultiple(
-            document.getElementById(`tipo_${id}`), js.tipos
-          );
-          populateSingle(
-            document.getElementById(`acero_${id}`), js.aceros
-          );
-          populateSingle(
-            document.getElementById(`acero_cup_${id}`), js.aceros_cup
-          );
-          populateSingle(
-            document.getElementById(`tipo_cup_${id}`), js.tipo_cup
-          );
+        // repoblamos cada select con lo que venga del servidor
+        cascadeEls.forEach(el => {
+          const opts = js[el.dataset.field] || [];
+          populate(el, opts, el.multiple);
         });
       })
-      .catch(e => console.error("Cascade error:", e));
+      .catch(err => console.error("Error cascada:", err));
   }
 
-  // Asociamos el listener a todos los selects de cascada
-  diameters.forEach(d => {
-    const id = slug(d);
-    ["tipo", "acero", "acero_cup"].forEach(field => {
-      const el = document.getElementById(`${field}_${id}`);
-      if (el) el.addEventListener("change", updateFilters);
-    });
-  });
+  // 5) asociamos el evento change a todos los selects .cascade
+  cascadeEls.forEach(el => el.addEventListener("change", updateFilters));
 
-  // (Opcional) arrancar ya filtrado según estado inicial
+  // 6) inicializamos la primera carga
   updateFilters();
 });
 </script>
 {% endblock %}
+
 
 
 
