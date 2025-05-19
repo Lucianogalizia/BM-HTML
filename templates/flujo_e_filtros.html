@@ -99,6 +99,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const diameters  = {{ selected_diametros|tojson }};
   const cascadeEls = [...document.querySelectorAll('.cascade')];
 
+  // Repobla un <select>, marcando las previas
   function populate(el, opts, multiple, prev) {
     el.innerHTML = "";
     if (!multiple) {
@@ -109,55 +110,55 @@ document.addEventListener("DOMContentLoaded", () => {
     opts.forEach(v => {
       const o = document.createElement("option");
       o.value = o.text = v;
-      // si existía en la selección previa, la marcamos
       if (multiple && prev.includes(v)) o.selected = true;
-      if (!multiple && prev === v) o.selected = true;
+      if (!multiple && prev === v)       o.selected = true;
       el.appendChild(o);
     });
   }
 
   function updateFilters() {
-    // 1) Guarda la selección actual de cada campo
+    // 1) Guarda la selección actual POR ELEMENTO (clave = el.name)
     const prevValues = {};
     cascadeEls.forEach(el => {
-      const key = el.dataset.field;
       if (el.multiple) {
-        prevValues[key] = Array.from(el.selectedOptions).map(o => o.value);
+        prevValues[el.name] = Array.from(el.selectedOptions).map(o => o.value);
       } else {
-        prevValues[key] = el.value;
+        prevValues[el.name] = el.value;
       }
     });
 
-    // 2) Prepara los params
+    // 2) Construye los params para el fetch, usando data-field
     const params = new URLSearchParams();
     diameters.forEach(d => params.append("diametros", d));
     cascadeEls.forEach(el => {
-      const key = el.dataset.field;
+      const vals = prevValues[el.name];
       if (el.multiple) {
-        prevValues[key].forEach(v => params.append(key, v));
-      } else if (prevValues[key]) {
-        params.append(key, prevValues[key]);
+        vals.forEach(v => params.append(el.dataset.field, v));
+      } else if (vals) {
+        params.append(el.dataset.field, vals);
       }
     });
 
-    // 3) Fetch y repoblado
+    // 3) Llama al endpoint y repuebla cada select con su prevValues
     fetch(`/api/flujo_e/filters_all?${params}`)
       .then(r => r.json())
       .then(js => {
         cascadeEls.forEach(el => {
-          const opts     = js[el.dataset.field] || [];
-          const prev     = prevValues[el.dataset.field] || (el.multiple ? [] : "");
+          const opts = js[el.dataset.field] || [];
+          const prev = prevValues[el.name] || (el.multiple ? [] : "");
           populate(el, opts, el.multiple, prev);
         });
       })
       .catch(err => console.error("Error cascada:", err));
   }
 
+  // 4) Asocia cambio y lanza primera carga
   cascadeEls.forEach(el => el.addEventListener("change", updateFilters));
   updateFilters();
 });
 </script>
 {% endblock %}
+
 
 
 
