@@ -1,12 +1,11 @@
-from flask import Flask, render_template, request, redirect, url_for, Blueprint
+from flask import Flask, render_template, request, redirect, url_for
 import os
 import pandas as pd
 import json
 
 
 app = Flask(__name__)
-# Registrar el blueprint de Flujo E
-app.register_blueprint(flujo_e_bp)
+
 
 # Directorio de archivos Excel
 BASE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "materiales")
@@ -592,6 +591,7 @@ def flujo_d_cantidades():
 BASE_DIR    = os.path.dirname(os.path.abspath(__file__))
 EXCEL_PATH  = os.path.join(BASE_DIR, "materiales", "baja varillas.xlsx")
 
+app.register_blueprint(flujo_e_bp)
 flujo_e_bp = Blueprint('flujo_e', __name__)
 
 # ===================================
