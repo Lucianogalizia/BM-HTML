@@ -1,70 +1,80 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Mi Aplicación{% endblock %}</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <!-- Bloque para añadir CSS o meta adicionales desde plantillas hijas -->
-    {% block head %}{% endblock %}
+  <title>{% block title %}Mi Aplicación{% endblock %}</title>
 
-    <!-- Bootstrap CSS -->
-    <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
-      rel="stylesheet"
-      integrity="sha384-ENjdO4Dr2bkBIFxQpeoY9EML+2+P3aLELU9KSL0sibVcOQVnNQ+8nbTov4+1p"
-      crossorigin="anonymous"
-    >
-    <!-- Hoja de estilos personalizada -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/estilos.css') }}">
+  {% block head %}{% endblock %}
+
+  <!-- Bootstrap 5 CSS -->
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+    rel="stylesheet"
+    integrity="sha384-ENjdO4Dr2bkBIFxQpeoY9EML+2+P3aLELU9KSL0sibVcOQVnNQ+8nbTov4+1p"
+    crossorigin="anonymous"
+  >
+  <!-- Estilos personalizados -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/estilos.css') }}">
 </head>
 <body>
-    <!-- Barra de navegación -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-      <div class="container">
-        <a class="navbar-brand" href="{{ url_for('index') }}">Mi Aplicación</a>
-        <button
-          class="navbar-toggler"
-          type="button"
-          data-bs-toggle="collapse"
-          data-bs-target="#navbarNav"
-          aria-controls="navbarNav"
-          aria-expanded="false"
-          aria-label="Toggle navigation"
-        >
-          <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarNav">
-          <!-- Aquí podés agregar enlaces de navegación -->
-        </div>
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container">
+      <a class="navbar-brand" href="{{ url_for('index') }}">Mi Aplicación</a>
+      <button
+        class="navbar-toggler"
+        type="button"
+        data-bs-toggle="collapse"
+        data-bs-target="#navbarNav"
+        aria-controls="navbarNav"
+        aria-expanded="false"
+        aria-label="Toggle navigation"
+      >
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <!-- enlaces de navegación aquí -->
       </div>
-    </nav>
+    </div>
+  </nav>
 
-    <!-- Contenido principal -->
-    <main class="container my-5">
-        {% block content %}{% endblock %}
-    </main>
-
-    <!-- Pie de página -->
-    <footer class="bg-light text-center py-3">
-        <div class="container">
-            <p class="mb-0">&copy; 2025 Mi Aplicación. Todos los derechos reservados.</p>
+  <!-- Contenido -->
+  <main class="container my-5">
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <div class="alert alert-warning">
+          {% for msg in messages %}
+            <div>{{ msg }}</div>
+          {% endfor %}
         </div>
-    </footer>
+      {% endif %}
+    {% endwith %}
+    {% block content %}{% endblock %}
+  </main>
 
-    <!-- jQuery (necesario para nuestro cascade filtering) -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"
-            integrity="sha256-/xUj+3OJ+Yp+2j6kO2eaZ2kk9z1PpNNQ+B+CF5F5xU="
-            crossorigin="anonymous"></script>
-    <!-- Bootstrap JS Bundle (Popper incluido) -->
-    <script
-      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"
-      integrity="sha384-q2gyS+AC+zY6jzvNEe2fM4LWE0DvEN2g+6/tModepoHi+LejIzWh6P4RXZbh+KkZ"
-      crossorigin="anonymous"
-    ></script>
+  <!-- Footer -->
+  <footer class="bg-light text-center py-3">
+    <div class="container">
+      <small>&copy; 2025 Mi Aplicación. Todos los derechos reservados.</small>
+    </div>
+  </footer>
 
-    <!-- Bloque para scripts específicos de cada plantilla -->
-    {% block scripts %}{% endblock %}
+  <!-- jQuery (para cascade filtering si lo necesitas) -->
+  <script
+    src="https://code.jquery.com/jquery-3.6.0.min.js"
+    integrity="sha256-/xUj+3OJ+Yp+2j6kO2eaZ2kk9z1PpNNQ+B+CF5F5xU="
+    crossorigin="anonymous"
+  ></script>
+  <!-- Bootstrap Bundle JS (Popper incluido) -->
+  <script
+    src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-ENjdO4Dr2bkBIFxQpeoY9EML+2+P3aLELU9KSL0sibVcOQVnNQ+8nbTov4+1p"
+    crossorigin="anonymous"
+  ></script>
+  {% block scripts %}{% endblock %}
 </body>
 </html>
+
 
