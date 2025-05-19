@@ -13,62 +13,74 @@
             Para DIÁMETRO: {{ diam }}
           </div>
           <div class="card-body">
+            <!-- TIPO -->
             <div class="mb-3">
-              <label for="tipo_{{ diam }}" class="form-label">Selecciona uno o más <strong>TIPO</strong>:</label>
+              <label for="tipo_{{ diam }}" class="form-label">
+                Selecciona uno o más <strong>TIPO</strong>:
+              </label>
               <select
-                name="tipo_{{ diam }}"
                 id="tipo_{{ diam }}"
-                multiple
-                size="5"
+                name="tipo_{{ diam }}"
                 class="form-select cascade"
                 data-field="tipos"
                 data-diam="{{ diam }}"
+                multiple
+                size="5"
               >
-                {% for tipo in filtros[diam].tipos %}
-                  <option value="{{ tipo }}">{{ tipo }}</option>
+                {% for t in filtros[diam].tipos %}
+                  <option value="{{ t }}">{{ t }}</option>
                 {% endfor %}
               </select>
             </div>
+            <!-- GRADO DE ACERO -->
             <div class="mb-3">
-              <label for="acero_{{ diam }}" class="form-label"><strong>GRADO DE ACERO</strong>:</label>
+              <label for="acero_{{ diam }}" class="form-label">
+                <strong>GRADO DE ACERO</strong>:
+              </label>
               <select
-                name="acero_{{ diam }}"
                 id="acero_{{ diam }}"
+                name="acero_{{ diam }}"
                 class="form-select cascade"
                 data-field="aceros"
                 data-diam="{{ diam }}"
               >
                 <option value="">Seleccionar</option>
-                {% for item in filtros[diam].acero %}
-                  <option value="{{ item }}">{{ item }}</option>
+                {% for a in filtros[diam].acero %}
+                  <option value="{{ a }}">{{ a }}</option>
                 {% endfor %}
               </select>
             </div>
+            <!-- GRADO DE ACERO CUPLA -->
             <div class="mb-3">
-              <label for="acero_cup_{{ diam }}" class="form-label"><strong>GRADO DE ACERO CUPLA</strong>:</label>
+              <label for="acero_cup_{{ diam }}" class="form-label">
+                <strong>GRADO DE ACERO CUPLA</strong>:
+              </label>
               <select
-                name="acero_cup_{{ diam }}"
                 id="acero_cup_{{ diam }}"
+                name="acero_cup_{{ diam }}"
                 class="form-select cascade"
                 data-field="aceros_cup"
                 data-diam="{{ diam }}"
               >
                 <option value="">Seleccionar</option>
-                {% for item in filtros[diam].acero_cup %}
-                  <option value="{{ item }}">{{ item }}</option>
+                {% for c in filtros[diam].acero_cup %}
+                  <option value="{{ c }}">{{ c }}</option>
                 {% endfor %}
               </select>
             </div>
+            <!-- TIPO DE CUPLA -->
             <div class="mb-3">
-              <label for="tipo_cup_{{ diam }}" class="form-label"><strong>TIPO DE CUPLA</strong>:</label>
+              <label for="tipo_cup_{{ diam }}" class="form-label">
+                <strong>TIPO DE CUPLA</strong>:
+              </label>
               <select
-                name="tipo_cup_{{ diam }}"
                 id="tipo_cup_{{ diam }}"
+                name="tipo_cup_{{ diam }}"
                 class="form-select"
               >
                 <option value="">Seleccionar</option>
-                {% for item in filtros[diam].tipo_cup %}
-                  <option value="{{ item }}">{{ item }}</option>
+                {% for tc in filtros[diam].tipo_cup %}
+                  <option value="{{ tc }}">{{ tc }}</option>
                 {% endfor %}
               </select>
             </div>
@@ -76,104 +88,98 @@
         </div>
       {% endfor %}
 
-      <div class="text-center mb-5">
-        <button type="submit" class="btn btn-primary btn-lg">Aplicar Filtros</button>
+      <div class="text-center">
+        <button type="submit" class="btn btn-primary btn-lg">
+          Aplicar Filtros
+        </button>
       </div>
     </form>
   </div>
 </div>
 {% endblock %}
 
-
 {% block scripts %}
 <script>
-// Espera a que el DOM esté listo
-document.addEventListener("DOMContentLoaded", function(){
-  // 1) Obtenemos la lista de diámetros desde el servidor (Jinja → JS)
+document.addEventListener("DOMContentLoaded", () => {
+  // 1) Lista de diámetros que vienen de Python
   const diameters = {{ selected_diametros|tojson }};
 
-  // 2) Funciones auxiliares para repoblar selects
-  function populateMultiple(el, options) {
+  // 2) Funciones para repoblar los selects
+  function populateMultiple(el, opts) {
     el.innerHTML = "";
-    options.forEach(v => {
+    opts.forEach(v => {
       const o = document.createElement("option");
       o.value = v; o.text = v;
       el.appendChild(o);
     });
   }
-  function populateSingle(el, options) {
+  function populateSingle(el, opts) {
     el.innerHTML = "";
-    const placeholder = document.createElement("option");
-    placeholder.value = ""; placeholder.text = "Seleccionar";
-    el.appendChild(placeholder);
-    options.forEach(v => {
+    const ph = document.createElement("option");
+    ph.value = ""; ph.text = "Seleccionar";
+    el.appendChild(ph);
+    opts.forEach(v => {
       const o = document.createElement("option");
       o.value = v; o.text = v;
       el.appendChild(o);
     });
   }
 
-  // 3) Lógica de cascade filtering
+  // 3) Lógica de cascada: recarga todo cada vez que cambie un filtro
   function updateFilters() {
     const params = new URLSearchParams();
-    // Siempre enviamos todos los diámetros
+
+    // siempre enviamos los diámetros
     diameters.forEach(d => params.append("diametros", d));
 
-    // Para cada diámetro, añadimos TIPO(s), ACERO, ACERO_CUP
+    // para cada diámetro recogemos los valores de tipo / acero / acero_cup
     diameters.forEach(d => {
-      // TIPO (multi-select)
       const tipoEl = document.getElementById(`tipo_${d}`);
       Array.from(tipoEl.selectedOptions)
-           .map(o=>o.value)
-           .filter(v=>v)
-           .forEach(v=> params.append("tipos", v));
+           .map(o => o.value)
+           .filter(v => v)
+           .forEach(v => params.append("tipos", v));
 
-      // ACERO
-      const aceroEl = document.getElementById(`acero_${d}`);
-      if (aceroEl.value) params.append("aceros", aceroEl.value);
+      const acEl  = document.getElementById(`acero_${d}`);
+      if (acEl.value) params.append("aceros", acEl.value);
 
-      // ACERO_CUP
-      const acCupEl = document.getElementById(`acero_cup_${d}`);
-      if (acCupEl.value) params.append("aceros_cup", acCupEl.value);
+      const acCEl = document.getElementById(`acero_cup_${d}`);
+      if (acCEl.value) params.append("aceros_cup", acCEl.value);
     });
 
-    // 4) Fetch al endpoint que devuelve todas las listas
+    // hacemos fetch al endpoint que devuelve todas las listas filtradas
     fetch(`/api/flujo_e/filters_all?${params.toString()}`)
-      .then(r => r.json())
-      .then(data => {
-        // 5) Repoblamos cada select de cada diámetro
+      .then(res => res.json())
+      .then(js => {
         diameters.forEach(d => {
           populateMultiple(
-            document.getElementById(`tipo_${d}`),
-            data.tipos
+            document.getElementById(`tipo_${d}`), js.tipos
           );
           populateSingle(
-            document.getElementById(`acero_${d}`),
-            data.aceros
+            document.getElementById(`acero_${d}`), js.aceros
           );
           populateSingle(
-            document.getElementById(`acero_cup_${d}`),
-            data.aceros_cup
+            document.getElementById(`acero_cup_${d}`), js.aceros_cup
           );
           populateSingle(
-            document.getElementById(`tipo_cup_${d}`),
-            data.tipo_cup
+            document.getElementById(`tipo_cup_${d}`), js.tipo_cup
           );
         });
       })
-      .catch(err => console.error("Error en cascade filtering:", err));
+      .catch(e => console.error("Cascade error:", e));
   }
 
-  // 6) Enlazamos el evento 'change' a los selects que disparan la cascada
+  // 4) Asociar el evento change a los selects que disparan la cascada
   diameters.forEach(d => {
-    ["tipo", "acero", "acero_cup"].forEach(field => {
-      const el = document.getElementById(`${field}_${d}`);
+    ["tipo", "acero", "acero_cup"].forEach(f => {
+      const el = document.getElementById(`${f}_${d}`);
       if (el) el.addEventListener("change", updateFilters);
     });
   });
 });
 </script>
 {% endblock %}
+
 
 
 
