@@ -6,187 +6,56 @@
 <div class="row">
   <div class="col-md-10 offset-md-1">
     <h1 class="text-center mb-4">Flujo E: Configuración de Filtros</h1>
-    <form id="filtrosForm" method="POST">
+    <form method="POST">
       {% for diam in selected_diametros %}
-        <div class="card mb-4" data-diam="{{ diam }}">
+        <div class="card mb-3">
           <div class="card-header">
             Para DIÁMETRO: {{ diam }}
           </div>
           <div class="card-body">
-            <!-- Paso 1: TIPO -->
             <div class="mb-3">
-              <label class="form-label"><strong>Paso 1. TIPO</strong>:</label>
-              <select id="tipo_{{ diam }}"
-                      class="form-select cascade"
-                      data-field="tipos"
-                      data-diam="{{ diam }}"
-                      multiple
-                      size="5">
-                {% for t in filtros[diam].tipos %}
-                  <option value="{{ t }}">{{ t }}</option>
+              <label class="form-label">Selecciona uno o más TIPO:</label>
+              <select name="tipo_{{ diam }}" multiple class="form-select" size="5">
+                {% for tipo in filtros[diam].tipos %}
+                  <option value="{{ tipo }}">{{ tipo }}</option>
                 {% endfor %}
               </select>
             </div>
-
-            <!-- Paso 2: GRADO DE ACERO -->
             <div class="mb-3">
-              <label class="form-label"><strong>Paso 2. GRADO DE ACERO</strong>:</label>
-              <select id="acero_{{ diam }}"
-                      class="form-select cascade"
-                      data-field="aceros"
-                      data-diam="{{ diam }}"
-                      disabled>
-                <option value="">Seleccionar</option>
-                {% for a in filtros[diam].acero %}
-                  <option value="{{ a }}">{{ a }}</option>
+              <label class="form-label">GRADO DE ACERO:</label>
+              <select name="acero_{{ diam }}" class="form-select">
+                {% for item in filtros[diam].acero %}
+                  <option value="{{ item }}">{{ item }}</option>
                 {% endfor %}
               </select>
             </div>
-
-            <!-- Paso 3: GRADO DE ACERO CUPLA -->
             <div class="mb-3">
-              <label class="form-label"><strong>Paso 3. GRADO DE ACERO CUPLA</strong>:</label>
-              <select id="acero_cup_{{ diam }}"
-                      class="form-select cascade"
-                      data-field="aceros_cup"
-                      data-diam="{{ diam }}"
-                      disabled>
-                <option value="">Seleccionar</option>
-                {% for c in filtros[diam].acero_cup %}
-                  <option value="{{ c }}">{{ c }}</option>
+              <label class="form-label">GRADO DE ACERO CUPLA:</label>
+              <select name="acero_cup_{{ diam }}" class="form-select">
+                {% for item in filtros[diam].acero_cup %}
+                  <option value="{{ item }}">{{ item }}</option>
                 {% endfor %}
               </select>
             </div>
-
-            <!-- Paso 4: TIPO DE CUPLA -->
             <div class="mb-3">
-              <label class="form-label"><strong>Paso 4. TIPO DE CUPLA</strong>:</label>
-              <select id="tipo_cup_{{ diam }}"
-                      class="form-select cascade"
-                      data-field="tipo_cup"
-                      data-diam="{{ diam }}"
-                      disabled>
-                <option value="">Seleccionar</option>
-                {% for tc in filtros[diam].tipo_cup %}
-                  <option value="{{ tc }}">{{ tc }}</option>
+              <label class="form-label">TIPO DE CUPLA:</label>
+              <select name="tipo_cup_{{ diam }}" class="form-select">
+                {% for item in filtros[diam].tipo_cup %}
+                  <option value="{{ item }}">{{ item }}</option>
                 {% endfor %}
               </select>
             </div>
           </div>
         </div>
       {% endfor %}
-
       <div class="text-center">
-        <button type="submit" class="btn btn-primary btn-lg">Aplicar Filtros</button>
+        <button type="submit" class="btn btn-primary">Aplicar Filtros</button>
       </div>
     </form>
   </div>
 </div>
 {% endblock %}
 
-{% block scripts %}
-<script>
-document.addEventListener("DOMContentLoaded", () => {
-  // 1) Todas las tarjetas
-  const cards = document.querySelectorAll('.card[data-diam]');
-
-  // 2) Funciones de repoblado
-  function populateMultiple(el, opts) {
-    el.innerHTML = "";
-    opts.forEach(v => {
-      const o = document.createElement("option");
-      o.value = v; o.text = v;
-      el.appendChild(o);
-    });
-  }
-  function populateSingle(el, opts) {
-    el.innerHTML = "";
-    const ph = document.createElement("option");
-    ph.value = ""; ph.text = "Seleccionar";
-    el.appendChild(ph);
-    opts.forEach(v => {
-      const o = document.createElement("option");
-      o.value = v; o.text = v;
-      el.appendChild(o);
-    });
-  }
-
-  // 3) Lógica de cascada AJAX
-  function updateFilters() {
-    const params = new URLSearchParams();
-    cards.forEach(card => {
-      const diam = card.dataset.diam;
-      params.append("diametros", diam);
-      card.querySelectorAll('.cascade').forEach(el => {
-        const field = el.dataset.field;
-        if (el.multiple) {
-          Array.from(el.selectedOptions)
-            .map(o => o.value)
-            .filter(v => v)
-            .forEach(v => params.append(field, v));
-        } else if (el.value) {
-          params.append(field, el.value);
-        }
-      });
-    });
-
-    fetch(`/api/flujo_e/filters_all?${params.toString()}`)
-      .then(r => r.json())
-      .then(js => {
-        cards.forEach(card => {
-          populateMultiple(
-            card.querySelector('select[data-field="tipos"]'),
-            js.tipos
-          );
-          populateSingle(
-            card.querySelector('select[data-field="aceros"]'),
-            js.aceros
-          );
-          populateSingle(
-            card.querySelector('select[data-field="aceros_cup"]'),
-            js.aceros_cup
-          );
-          populateSingle(
-            card.querySelector('select[data-field="tipo_cup"]'),
-            js.tipo_cup
-          );
-        });
-      })
-      .catch(err => console.error("Cascade error:", err));
-  }
-
-  // 4) Inicializar cada tarjeta
-  cards.forEach(card => {
-    const sel1 = card.querySelector('select[data-field="tipos"]');
-    const sel2 = card.querySelector('select[data-field="aceros"]');
-    const sel3 = card.querySelector('select[data-field="aceros_cup"]');
-    const sel4 = card.querySelector('select[data-field="tipo_cup"]');
-
-    // Deshabilitar pasos 2,3,4 al inicio
-    [sel2, sel3, sel4].forEach(s => s.disabled = true);
-
-    sel1.addEventListener("change", () => {
-      sel2.disabled = false;
-      updateFilters();
-    });
-    sel2.addEventListener("change", () => {
-      sel3.disabled = false;
-      updateFilters();
-    });
-    sel3.addEventListener("change", () => {
-      sel4.disabled = false;
-      updateFilters();
-    });
-    sel4.addEventListener("change", updateFilters);
-  });
-
-  // 5) También lanzamos cascada en cualquier cambio
-  document.querySelectorAll('.cascade').forEach(el => {
-    el.addEventListener("change", updateFilters);
-  });
-});
-</script>
-{% endblock %}
 
 
 
