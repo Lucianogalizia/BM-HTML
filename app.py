@@ -877,7 +877,7 @@ def flujo_h_decidir():
     if respuesta == "SI":
         return redirect(url_for("flujo_h_seleccion"))
     elif respuesta == "NO":
-        return redirect(url_for("flujo_final"))
+        return redirect(url_for("flujo_i"))
     else:
         return "Selecciona una opción.", 400
 
@@ -948,6 +948,38 @@ def flujo_h_cantidades():
         if not seleccionados:
             return "No se encontraron materiales seleccionados.", 400
         return render_template("flujo_h_cantidades.html", materiales=seleccionados)
+#==========================================
+#FLUJO I: seleccion de valvulas de puente produccion
+#==========================================
+@app.route("/flujo_i", methods=["GET", "POST"])
+def flujo_i():
+    if request.method == "POST":
+        valv = request.form.get("valvulas")
+        if valv == "SI":
+            # agregamos las dos filas al global materiales_finales
+            rows = [
+                {
+                  "Cód.SAP":    "1000578615",
+                  "MATERIAL":   "VÁLVULA RETENCIÓN",
+                  "Descripción":"V.RET. 2\" NPTHH DURALIT.302009",
+                  "4.CANTIDAD": 2,
+                  "CONDICIÓN":  "NUEVO"
+                },
+                {
+                  "Cód.SAP":    "230100395",
+                  "MATERIAL":   "VÁLVULA",
+                  "Descripción":"V.ESF.ROS.2\" NPT  2000 A105/316   PT PAL",
+                  "4.CANTIDAD": 2,
+                  "CONDICIÓN":  "NUEVO"
+                }
+            ]
+            df_valv = pd.DataFrame(rows)
+            # renombrar columnas según tu helper y añadir flujo
+            materiales_finales.append(("FLUJO I", renombrar_columnas(df_valv)))
+        # cualquiera que sea la respuesta, vamos al flujo final
+        return redirect(url_for("flujo_final"))
+    # GET → renderizamos el formulario de Flujo I
+    return render_template("flujo_i.html")
 
 # ===================================
 # FLUJO FINAL: Resultados Consolidados
