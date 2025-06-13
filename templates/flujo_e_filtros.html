@@ -3,35 +3,196 @@
 {% block title %}Flujo E: Configuración de Filtros{% endblock %}
 
 {% block content %}
-<div class="card mb-4" data-diam="1.0">
-  <div class="card-header">Para DIÁMETRO: 1.0</div>
-  <div class="card-body">
-    <div class="step step-1">
-      <select id="tipo_1.0" class="form-select cascade" data-field="tipos" data-diam="1.0">
-        <option value="A">A</option>
-        <option value="B">B</option>
-      </select>
-    </div>
-    <div class="step step-2" style="display:none">
-      <select id="acero_1.0" class="form-select cascade" data-field="aceros" data-diam="1.0">
-        <option value="X">X</option>
-        <option value="Y">Y</option>
-      </select>
-    </div>
+<div class="row">
+  <div class="col-md-10 offset-md-1">
+    <h1 class="text-center mb-4">Flujo E: Configuración de Filtros</h1>
+    <form id="filtrosForm" method="POST">
+      {% for diam in selected_diametros %}
+        <div class="card mb-4" data-diam="{{ diam }}">
+          <div class="card-header">
+            Para DIÁMETRO: {{ diam }}
+          </div>
+          <div class="card-body">
+            <!-- Paso 1: TIPO -->
+            <div class="mb-3 step step-1">
+              <label class="form-label">
+                Paso 1. Selecciona uno o más <strong>TIPO</strong>:
+              </label>
+              <select
+                class="form-select cascade"
+                data-field="tipos"
+                data-diam="{{ diam }}"
+                multiple
+                size="5"
+              >
+                {% for t in filtros[diam].tipos %}
+                  <option value="{{ t }}">{{ t }}</option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <!-- Paso 2: GRADO DE ACERO -->
+            <div class="mb-3 step step-2" style="display:none">
+              <label class="form-label">
+                Paso 2. <strong>GRADO DE ACERO</strong>:
+              </label>
+              <select
+                class="form-select cascade"
+                data-field="aceros"
+                data-diam="{{ diam }}"
+              >
+                <option value="">Seleccionar</option>
+                {% for a in filtros[diam].acero %}
+                  <option value="{{ a }}">{{ a }}</option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <!-- Paso 3: GRADO DE ACERO CUPLA -->
+            <div class="mb-3 step step-3" style="display:none">
+              <label class="form-label">
+                Paso 3. <strong>GRADO DE ACERO CUPLA</strong>:
+              </label>
+              <select
+                class="form-select cascade"
+                data-field="aceros_cup"
+                data-diam="{{ diam }}"
+              >
+                <option value="">Seleccionar</option>
+                {% for c in filtros[diam].acero_cup %}
+                  <option value="{{ c }}">{{ c }}</option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <!-- Paso 4: TIPO DE CUPLA -->
+            <div class="mb-3 step step-4" style="display:none">
+              <label class="form-label">
+                Paso 4. <strong>TIPO DE CUPLA</strong>:
+              </label>
+              <select
+                class="form-select cascade"
+                data-field="tipo_cup"
+                data-diam="{{ diam }}"
+              >
+                <option value="">Seleccionar</option>
+                {% for tc in filtros[diam].tipo_cup %}
+                  <option value="{{ tc }}">{{ tc }}</option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+
+      <div class="text-center">
+        <button type="submit" class="btn btn-primary btn-lg">Aplicar Filtros</button>
+      </div>
+    </form>
   </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
 <script>
 document.addEventListener("DOMContentLoaded", () => {
-  const card = document.querySelector('.card[data-diam="1.0"]');
-  const sel1 = card.querySelector('select[data-field="tipos"]');
-  const sel2 = card.querySelector('select[data-field="aceros"]');
-  sel1.addEventListener("change", () => {
-    console.log("Paso 1 OK, abriendo Paso 2");
-    card.querySelector(".step-2").style.display = "";
+  // lista de diámetros
+  const diameters = {{ selected_diametros|tojson }};
+
+  // repoblado
+  function populateMultiple(el, opts) {
+    el.innerHTML = "";
+    opts.forEach(v => {
+      const o = document.createElement("option");
+      o.value = v; o.text = v;
+      el.appendChild(o);
+    });
+  }
+  function populateSingle(el, opts) {
+    el.innerHTML = "";
+    const ph = document.createElement("option");
+    ph.value = ""; ph.text = "Seleccionar";
+    el.appendChild(ph);
+    opts.forEach(v => {
+      const o = document.createElement("option");
+      o.value = v; o.text = v;
+      el.appendChild(o);
+    });
+  }
+
+  // AJAX cascada
+  function updateFilters() {
+    const params = new URLSearchParams();
+    diameters.forEach(d => params.append("diametros", d));
+    diameters.forEach(d => {
+      document
+        .querySelectorAll(`.card[data-diam="${d}"] .cascade`)
+        .forEach(el => {
+          const f = el.dataset.field;
+          if (el.multiple) {
+            Array.from(el.selectedOptions)
+              .map(o => o.value)
+              .filter(v => v)
+              .forEach(v => params.append(f, v));
+          } else if (el.value) {
+            params.append(f, el.value);
+          }
+        });
+    });
+
+    fetch(`/api/flujo_e/filters_all?${params}`)
+      .then(r => r.json())
+      .then(js => {
+        diameters.forEach(d => {
+          populateMultiple(
+            document.querySelector(`.card[data-diam="${d}"] select[data-field="tipos"]`),
+            js.tipos
+          );
+          populateSingle(
+            document.querySelector(`.card[data-diam="${d}"] select[data-field="aceros"]`),
+            js.aceros
+          );
+          populateSingle(
+            document.querySelector(`.card[data-diam="${d}"] select[data-field="aceros_cup"]`),
+            js.aceros_cup
+          );
+          populateSingle(
+            document.querySelector(`.card[data-diam="${d}"] select[data-field="tipo_cup"]`),
+            js.tipo_cup
+          );
+        });
+      })
+      .catch(console.error);
+  }
+
+  // wizard paso a paso
+  document.querySelectorAll('.card[data-diam]').forEach(card => {
+    const sel1 = card.querySelector('select[data-field="tipos"]');
+    const sel2 = card.querySelector('select[data-field="aceros"]');
+    const sel3 = card.querySelector('select[data-field="aceros_cup"]');
+    const sel4 = card.querySelector('select[data-field="tipo_cup"]');
+
+    sel1.addEventListener("change", () => {
+      card.querySelector(".step-2").style.display = "";
+      updateFilters();
+    });
+    sel2.addEventListener("change", () => {
+      card.querySelector(".step-3").style.display = "";
+      updateFilters();
+    });
+    sel3.addEventListener("change", () => {
+      card.querySelector(".step-4").style.display = "";
+      updateFilters();
+    });
+    sel4.addEventListener("change", updateFilters);
+  });
+
+  // disparar cascada en cualquier cambio
+  document.querySelectorAll('.cascade').forEach(el => {
+    el.addEventListener("change", updateFilters);
   });
 });
 </script>
-
 {% endblock %}
 
 
