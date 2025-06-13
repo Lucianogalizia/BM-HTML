@@ -590,17 +590,17 @@ def flujo_d_cantidades():
 # FLUJO E: Baja Varilla
 # ===================================
 
-app = Flask(__name__)
 
-BASE_DIR   = os.path.dirname(os.path.abspath(__file__))
-EXCEL_PATH = os.path.join(BASE_DIR, "materiales", "baja varillas.xlsx")
-
-# … tu definición de renombrar_columnas y materiales_finales …
 
 @app.route("/", methods=["GET"])
 def index():
     # Redirige al inicio de tu flujo principal, por ejemplo flujo_e
     return redirect(url_for("flujo_e"))
+
+# GET inicial de Flujo E
+@app.route("/flujo_e", methods=["GET"])
+def flujo_e():
+    return render_template("flujo_e.html")
 
 @app.route("/flujo_e/decidir", methods=["POST"])
 def flujo_e_decidir():
