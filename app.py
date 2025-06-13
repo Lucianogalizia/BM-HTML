@@ -1011,6 +1011,21 @@ def export_excel():
         keep="last"
     )
 
+    # 3) Agrupa sobre ese resultado y suma "4.CANTIDAD", tomando también el último "Flujo"
+    grouped = (
+        deduped
+        .groupby(
+            ["Cód.SAP", "MATERIAL", "Descripción", "CONDICIÓN"],
+            as_index=False,
+            dropna=False
+        )
+        .agg({
+            "4.CANTIDAD": "sum",
+            "Flujo":      "last"
+        })
+    )
+
+    
     # 3) Prepara el buffer de Excel
     output = io.BytesIO()
     with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
