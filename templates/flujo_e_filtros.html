@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 
 {% block title %}Flujo E: Configuración de Filtros{% endblock %}
+
 {% block content %}
 <div class="row">
   <div class="col-md-10 offset-md-1">
@@ -23,7 +24,8 @@
                 class="form-select cascade"
                 data-field="tipos"
                 data-diam="{{ diam }}"
-                multiple size="5"
+                multiple
+                size="5"
               >
                 {% for t in filtros[diam].tipos %}
                   <option value="{{ t }}">{{ t }}</option>
@@ -104,7 +106,6 @@
 document.addEventListener("DOMContentLoaded", () => {
   const diameters = {{ selected_diametros|tojson }};
 
-  // funciones de repoblado (igual que antes)…
   function populateMultiple(el, opts) {
     el.innerHTML = "";
     opts.forEach(v => {
@@ -113,6 +114,7 @@ document.addEventListener("DOMContentLoaded", () => {
       el.appendChild(o);
     });
   }
+
   function populateSingle(el, opts) {
     el.innerHTML = "";
     const ph = document.createElement("option");
@@ -125,63 +127,79 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // disparar filtrado en cascada
   function updateFilters() {
     const params = new URLSearchParams();
     diameters.forEach(d => params.append("diametros", d));
+
     diameters.forEach(d => {
-      document.querySelectorAll(`[data-diam="${d}"]`).forEach(el => {
+      document.querySelectorAll(`.card[data-diam="${d}"] .cascade`).forEach(el => {
         const field = el.dataset.field;
         if (el.multiple) {
-          Array.from(el.selectedOptions).map(o => o.value)
-               .filter(v => v).forEach(v => params.append(field, v));
+          Array.from(el.selectedOptions)
+            .map(o => o.value)
+            .filter(v => v)
+            .forEach(v => params.append(field, v));
         } else {
           if (el.value) params.append(field, el.value);
         }
       });
     });
-    fetch(`/api/flujo_e/filters_all?${params}`)
-      .then(r => r.json())
+
+    fetch(`/api/flujo_e/filters_all?${params.toString()}`)
+      .then(res => res.json())
       .then(js => {
         diameters.forEach(d => {
-          populateMultiple(document.getElementById(`tipo_${d}`), js.tipos);
-          populateSingle(document.getElementById(`acero_${d}`), js.aceros);
-          populateSingle(document.getElementById(`acero_cup_${d}`), js.aceros_cup);
-          populateSingle(document.getElementById(`tipo_cup_${d}`), js.tipo_cup);
+          populateMultiple(
+            document.querySelector(`.card[data-diam="${d}"] select[data-field="tipos"]`),
+            js.tipos
+          );
+          populateSingle(
+            document.querySelector(`.card[data-diam="${d}"] select[data-field="aceros"]`),
+            js.aceros
+          );
+          populateSingle(
+            document.querySelector(`.card[data-diam="${d}"] select[data-field="aceros_cup"]`),
+            js.aceros_cup
+          );
+          populateSingle(
+            document.querySelector(`.card[data-diam="${d}"] select[data-field="tipo_cup"]`),
+            js.tipo_cup
+          );
         });
       })
-      .catch(console.error);
+      .catch(e => console.error("Cascade error:", e));
   }
 
-  // lógica de “wizard” paso a paso
-  diameters.forEach(d => {
-    const card = document.querySelector(`.card[data-diam="${d}"]`);
-    const sel1 = card.querySelector(`#tipo_${d}`);
-    const sel2 = card.querySelector(`#acero_${d}`);
-    const sel3 = card.querySelector(`#acero_cup_${d}`);
-    const sel4 = card.querySelector(`#tipo_cup_${d}`);
+  // Inicializar wizard paso a paso
+  document.querySelectorAll('.card[data-diam]').forEach(card => {
+    const sel1 = card.querySelector('select[data-field="tipos"]');
+    const sel2 = card.querySelector('select[data-field="aceros"]');
+    const sel3 = card.querySelector('select[data-field="aceros_cup"]');
+    const sel4 = card.querySelector('select[data-field="tipo_cup"]');
 
-    // al elegir Paso 1 → mostramos Paso 2 + actualizamos cascada
     sel1.addEventListener("change", () => {
       card.querySelector(".step-2").style.display = "";
       updateFilters();
     });
-    // Paso 2 → Paso 3
     sel2.addEventListener("change", () => {
       card.querySelector(".step-3").style.display = "";
       updateFilters();
     });
-    // Paso 3 → Paso 4
     sel3.addEventListener("change", () => {
       card.querySelector(".step-4").style.display = "";
       updateFilters();
     });
-    // Paso 4 → sólo actualización final
     sel4.addEventListener("change", updateFilters);
+  });
+
+  // También disparamos cascada en cualquier cambio de .cascade
+  document.querySelectorAll('.cascade').forEach(el => {
+    el.addEventListener("change", updateFilters);
   });
 });
 </script>
 {% endblock %}
+
 
 
 
