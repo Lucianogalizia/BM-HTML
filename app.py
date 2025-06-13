@@ -1004,16 +1004,15 @@ def export_excel():
         ignore_index=True
     )
 
-    # 2) Elimina duplicados según los campos clave (sin considerar "Flujo"),
-    #    manteniendo 'keep="last"' para conservar la entrada más reciente
+    # 2) Elimina duplicados según los campos clave (sin considerar "Flujo" ni "4.CANTIDAD")
     deduped_df = combined_df.drop_duplicates(
-        subset=["Cód.SAP", "MATERIAL", "Descripción", "4.CANTIDAD", "CONDICIÓN"],
+        subset=["Cód.SAP", "MATERIAL", "Descripción", "CONDICIÓN"],
         keep="last"
     )
 
     # 3) Agrupa sobre ese resultado y suma "4.CANTIDAD", tomando también el último "Flujo"
     grouped = (
-        deduped
+        deduped_df
         .groupby(
             ["Cód.SAP", "MATERIAL", "Descripción", "CONDICIÓN"],
             as_index=False,
@@ -1025,18 +1024,17 @@ def export_excel():
         })
     )
 
-    
-    # 3) Prepara el buffer de Excel
+    # 4) Prepara el buffer de Excel
     output = io.BytesIO()
     with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
-        deduped_df.to_excel(
+        grouped.to_excel(
             writer,
             sheet_name="Materiales Consolidados",
             index=False
         )
     output.seek(0)
 
-    # 4) Envía el archivo al usuario
+    # 5) Envía el archivo al usuario
     return send_file(
         output,
         attachment_filename="materiales_consolidados.xlsx",
