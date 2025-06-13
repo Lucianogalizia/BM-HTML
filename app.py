@@ -597,9 +597,10 @@ EXCEL_PATH = os.path.join(BASE_DIR, "materiales", "baja varillas.xlsx")
 
 # … tu definición de renombrar_columnas y materiales_finales …
 
-@app.route("/flujo_e", methods=["GET"])
-def flujo_e():
-    return render_template("flujo_e.html")
+@app.route("/", methods=["GET"])
+def index():
+    # Redirige al inicio de tu flujo principal, por ejemplo flujo_e
+    return redirect(url_for("flujo_e"))
 
 @app.route("/flujo_e/decidir", methods=["POST"])
 def flujo_e_decidir():
