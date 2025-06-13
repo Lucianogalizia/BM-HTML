@@ -1,22 +1,21 @@
 {% extends "base.html" %}
 
 {% block title %}Flujo E: Configuración de Filtros{% endblock %}
-
 {% block content %}
 <div class="row">
   <div class="col-md-10 offset-md-1">
     <h1 class="text-center mb-4">Flujo E: Configuración de Filtros</h1>
     <form id="filtrosForm" method="POST">
       {% for diam in selected_diametros %}
-        <div class="card mb-3">
+        <div class="card mb-4" data-diam="{{ diam }}">
           <div class="card-header">
             Para DIÁMETRO: {{ diam }}
           </div>
           <div class="card-body">
-            <!-- TIPO -->
-            <div class="mb-3">
+            <!-- Paso 1: TIPO -->
+            <div class="mb-3 step step-1">
               <label for="tipo_{{ diam }}" class="form-label">
-                Selecciona uno o más <strong>TIPO</strong>:
+                Paso 1. Selecciona uno o más <strong>TIPO</strong>:
               </label>
               <select
                 id="tipo_{{ diam }}"
@@ -24,18 +23,18 @@
                 class="form-select cascade"
                 data-field="tipos"
                 data-diam="{{ diam }}"
-                multiple
-                size="5"
+                multiple size="5"
               >
                 {% for t in filtros[diam].tipos %}
                   <option value="{{ t }}">{{ t }}</option>
                 {% endfor %}
               </select>
             </div>
-            <!-- GRADO DE ACERO -->
-            <div class="mb-3">
+
+            <!-- Paso 2: GRADO DE ACERO -->
+            <div class="mb-3 step step-2" style="display:none">
               <label for="acero_{{ diam }}" class="form-label">
-                <strong>GRADO DE ACERO</strong>:
+                Paso 2. <strong>GRADO DE ACERO</strong>:
               </label>
               <select
                 id="acero_{{ diam }}"
@@ -50,10 +49,11 @@
                 {% endfor %}
               </select>
             </div>
-            <!-- GRADO DE ACERO CUPLA -->
-            <div class="mb-3">
+
+            <!-- Paso 3: GRADO DE ACERO CUPLA -->
+            <div class="mb-3 step step-3" style="display:none">
               <label for="acero_cup_{{ diam }}" class="form-label">
-                <strong>GRADO DE ACERO CUPLA</strong>:
+                Paso 3. <strong>GRADO DE ACERO CUPLA</strong>:
               </label>
               <select
                 id="acero_cup_{{ diam }}"
@@ -68,10 +68,11 @@
                 {% endfor %}
               </select>
             </div>
-            <!-- TIPO DE CUPLA -->
-            <div class="mb-3">
+
+            <!-- Paso 4: TIPO DE CUPLA -->
+            <div class="mb-3 step step-4" style="display:none">
               <label for="tipo_cup_{{ diam }}" class="form-label">
-                <strong>TIPO DE CUPLA</strong>:
+                Paso 4. <strong>TIPO DE CUPLA</strong>:
               </label>
               <select
                 id="tipo_cup_{{ diam }}"
@@ -91,9 +92,7 @@
       {% endfor %}
 
       <div class="text-center">
-        <button type="submit" class="btn btn-primary btn-lg">
-          Aplicar Filtros
-        </button>
+        <button type="submit" class="btn btn-primary btn-lg">Aplicar Filtros</button>
       </div>
     </form>
   </div>
@@ -103,10 +102,9 @@
 {% block scripts %}
 <script>
 document.addEventListener("DOMContentLoaded", () => {
-  // 1) Lista de diámetros que vienen de Python
   const diameters = {{ selected_diametros|tojson }};
 
-  // 2) Funciones para repoblar los selects
+  // funciones de repoblado (igual que antes)…
   function populateMultiple(el, opts) {
     el.innerHTML = "";
     opts.forEach(v => {
@@ -127,53 +125,59 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // 3) Lógica de cascada: recarga todo cada vez que cambie un filtro
+  // disparar filtrado en cascada
   function updateFilters() {
     const params = new URLSearchParams();
-
-    // siempre enviamos los diámetros
     diameters.forEach(d => params.append("diametros", d));
-
-    // para cada diámetro recogemos los valores de tipo / acero / acero_cup / tipo_cup
     diameters.forEach(d => {
       document.querySelectorAll(`[data-diam="${d}"]`).forEach(el => {
         const field = el.dataset.field;
         if (el.multiple) {
-          Array.from(el.selectedOptions)
-               .map(o => o.value)
-               .filter(v => v)
-               .forEach(v => params.append(field, v));
+          Array.from(el.selectedOptions).map(o => o.value)
+               .filter(v => v).forEach(v => params.append(field, v));
         } else {
           if (el.value) params.append(field, el.value);
         }
       });
     });
-
-    // hacemos fetch al endpoint que devuelve todas las listas filtradas
-    fetch(`/api/flujo_e/filters_all?${params.toString()}`)
-      .then(res => res.json())
+    fetch(`/api/flujo_e/filters_all?${params}`)
+      .then(r => r.json())
       .then(js => {
         diameters.forEach(d => {
-          populateMultiple(
-            document.getElementById(`tipo_${d}`), js.tipos
-          );
-          populateSingle(
-            document.getElementById(`acero_${d}`), js.aceros
-          );
-          populateSingle(
-            document.getElementById(`acero_cup_${d}`), js.aceros_cup
-          );
-          populateSingle(
-            document.getElementById(`tipo_cup_${d}`), js.tipo_cup
-          );
+          populateMultiple(document.getElementById(`tipo_${d}`), js.tipos);
+          populateSingle(document.getElementById(`acero_${d}`), js.aceros);
+          populateSingle(document.getElementById(`acero_cup_${d}`), js.aceros_cup);
+          populateSingle(document.getElementById(`tipo_cup_${d}`), js.tipo_cup);
         });
       })
-      .catch(e => console.error("Cascade error:", e));
+      .catch(console.error);
   }
 
-  // 4) Asociar el evento change a todos los selects de la cascada
-  document.querySelectorAll('.cascade').forEach(el => {
-    el.addEventListener("change", updateFilters);
+  // lógica de “wizard” paso a paso
+  diameters.forEach(d => {
+    const card = document.querySelector(`.card[data-diam="${d}"]`);
+    const sel1 = card.querySelector(`#tipo_${d}`);
+    const sel2 = card.querySelector(`#acero_${d}`);
+    const sel3 = card.querySelector(`#acero_cup_${d}`);
+    const sel4 = card.querySelector(`#tipo_cup_${d}`);
+
+    // al elegir Paso 1 → mostramos Paso 2 + actualizamos cascada
+    sel1.addEventListener("change", () => {
+      card.querySelector(".step-2").style.display = "";
+      updateFilters();
+    });
+    // Paso 2 → Paso 3
+    sel2.addEventListener("change", () => {
+      card.querySelector(".step-3").style.display = "";
+      updateFilters();
+    });
+    // Paso 3 → Paso 4
+    sel3.addEventListener("change", () => {
+      card.querySelector(".step-4").style.display = "";
+      updateFilters();
+    });
+    // Paso 4 → sólo actualización final
+    sel4.addEventListener("change", updateFilters);
   });
 });
 </script>
