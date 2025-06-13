@@ -966,18 +966,30 @@ def export_excel():
     import io
     from flask import send_file
 
-    # Combina todos los DataFrames en uno solo, agregando una columna que indique el flujo
-    combined_df = pd.concat([df.assign(Flujo=flow) for flow, df in materiales_finales], ignore_index=True)
-    
-    # Crea un buffer en memoria para guardar el Excel
+    # 1) Combina todos los DataFrames en uno solo, añadiendo la columna "Flujo"
+    combined_df = pd.concat(
+        [df.assign(Flujo=flow) for flow, df in materiales_finales],
+        ignore_index=True
+    )
+
+    # 2) Elimina duplicados según los campos clave (sin considerar "Flujo"),
+    #    manteniendo 'keep="last"' para conservar la entrada más reciente
+    deduped_df = combined_df.drop_duplicates(
+        subset=["Cód.SAP", "MATERIAL", "Descripción", "4.CANTIDAD", "CONDICIÓN"],
+        keep="last"
+    )
+
+    # 3) Prepara el buffer de Excel
     output = io.BytesIO()
-    writer = pd.ExcelWriter(output, engine='xlsxwriter')
-    
-    # Escribe el DataFrame combinado en una sola hoja
-    combined_df.to_excel(writer, sheet_name="Materiales Consolidados", index=False)
-    writer.save()
+    with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
+        deduped_df.to_excel(
+            writer,
+            sheet_name="Materiales Consolidados",
+            index=False
+        )
     output.seek(0)
-    
+
+    # 4) Envía el archivo al usuario
     return send_file(
         output,
         attachment_filename="materiales_consolidados.xlsx",
