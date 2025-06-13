@@ -24,13 +24,18 @@
             </div>
             <!-- GRADO DE ACERO -->
             <div class="mb-3">
-              <label class="form-label"><strong>GRADO DE ACERO</strong>:</label>
-              <select name="acero_{{ diam }}"
-                      class="form-select cascade"
-                      data-field="aceros">
+              <label for="tipo_cup_{{ diam }}" class="form-label">
+                <strong>TIPO DE CUPLA</strong>:
+              </label>
+              <select
+                id="tipo_cup_{{ diam }}"
+                name="tipo_cup_{{ diam }}"
+                class="form-select cascade"
+                data-field="tipo_cup"
+              >
                 <option value="">Seleccionar</option>
-                {% for a in filtros[diam].acero %}
-                  <option value="{{ a }}">{{ a }}</option>
+                {% for tc in filtros[diam].tipo_cup %}
+                  <option value="{{ tc }}">{{ tc }}</option>
                 {% endfor %}
               </select>
             </div>
