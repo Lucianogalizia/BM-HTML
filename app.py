@@ -9,6 +9,7 @@ app = Flask(__name__)
 
 # Directorio de archivos Excel
 BASE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "materiales")
+EXCEL_PATH = os.path.join(BASE_DIR, "materiales", "baja varillas.xlsx")
 
 # Variable global para almacenar resultados de cada flujo
 materiales_finales = []
