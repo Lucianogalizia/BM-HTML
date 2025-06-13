@@ -1006,7 +1006,7 @@ def export_excel():
 
     # 2) Elimina duplicados según los campos clave (sin considerar "Flujo" ni "4.CANTIDAD")
     deduped_df = combined_df.drop_duplicates(
-        subset=["Cód.SAP", "MATERIAL", "Descripción", "CONDICIÓN"],
+        subset=["Cód.SAP", "MATERIAL", "Descripción", "4.CANTIDAD", "CONDICIÓN"],
         keep="last"
     )
 
