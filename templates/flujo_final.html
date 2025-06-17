@@ -3,16 +3,57 @@
 {% block title %}Flujo Final: Materiales Consolidados{% endblock %}
 
 {% block content %}
-<div class="container">
+<div class="container my-5">
   <h1 class="text-center mb-4">Flujo Final: Materiales Consolidados</h1>
-  {% for flow, df in materiales_finales %}
-    <h2>{{ flow }}</h2>
-    <div class="table-responsive">
-      {{ df.to_html(classes="table table-bordered", index=False) | safe }}
+
+  <!-- Botones de navegación a cada flujo -->
+  <div class="text-center mb-4">
+    <div class="btn-group flex-wrap" role="group" aria-label="Navegación Flujos">
+      <a href="{{ url_for('flujo_a') }}" class="btn btn-outline-secondary mb-2">Flujo A</a>
+      <a href="{{ url_for('flujo_b') }}" class="btn btn-outline-secondary mb-2">Flujo B</a>
+      <a href="{{ url_for('flujo_c') }}" class="btn btn-outline-secondary mb-2">Flujo C</a>
+      <a href="{{ url_for('flujo_d') }}" class="btn btn-outline-secondary mb-2">Flujo D</a>
+      <a href="{{ url_for('flujo_e') }}" class="btn btn-outline-secondary mb-2">Flujo E</a>
+      <a href="{{ url_for('flujo_f') }}" class="btn btn-outline-secondary mb-2">Flujo F</a>
+      <a href="{{ url_for('flujo_g') }}" class="btn btn-outline-secondary mb-2">Flujo G</a>
+      <a href="{{ url_for('flujo_h') }}" class="btn btn-outline-secondary mb-2">Flujo H</a>
+      <a href="{{ url_for('flujo_i') }}" class="btn btn-outline-secondary mb-2">Flujo I</a>
     </div>
-  {% endfor %}
+  </div>
+
+  <!-- Acordeón con los datos por flujo -->
+  <div class="accordion" id="accordionFlujos">
+    {% for flow, df in materiales_finales %}
+      <div class="accordion-item">
+        <h2 class="accordion-header" id="heading{{ loop.index }}">
+          <button class="accordion-button {% if not loop.first %}collapsed{% endif %}"
+                  type="button"
+                  data-bs-toggle="collapse"
+                  data-bs-target="#collapse{{ loop.index }}"
+                  aria-expanded="{{ 'true' if loop.first else 'false' }}"
+                  aria-controls="collapse{{ loop.index }}">
+            {{ flow }}
+          </button>
+        </h2>
+        <div id="collapse{{ loop.index }}"
+             class="accordion-collapse collapse {% if loop.first %}show{% endif %}"
+             aria-labelledby="heading{{ loop.index }}"
+             data-bs-parent="#accordionFlujos">
+          <div class="accordion-body">
+            <div class="table-responsive">
+              {{ df.to_html(classes="table table-bordered", index=False) | safe }}
+            </div>
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+
+  <!-- Botón de exportar -->
   <div class="text-center mt-4">
-    <a href="{{ url_for('export_excel') }}" class="btn btn-success">Exportar a Excel</a>
+    <a href="{{ url_for('export_excel') }}" class="btn btn-success btn-lg">
+      Exportar a Excel
+    </a>
   </div>
 </div>
 {% endblock %}
