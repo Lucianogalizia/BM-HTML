@@ -8,18 +8,36 @@
 
   <!-- Botones de navegación a cada flujo -->
   <div class="text-center mb-4">
-    <div class="btn-group flex-wrap" role="group" aria-label="Navegación Flujos">
-      <a href="{{ url_for('flujo_a') }}" class="btn btn-outline-secondary mb-2">Flujo A</a>
-      <a href="{{ url_for('flujo_b') }}" class="btn btn-outline-secondary mb-2">Flujo B</a>
-      <a href="{{ url_for('flujo_c') }}" class="btn btn-outline-secondary mb-2">Flujo C</a>
-      <a href="{{ url_for('flujo_d') }}" class="btn btn-outline-secondary mb-2">Flujo D</a>
-      <a href="{{ url_for('flujo_e') }}" class="btn btn-outline-secondary mb-2">Flujo E</a>
-      <a href="{{ url_for('flujo_f') }}" class="btn btn-outline-secondary mb-2">Flujo F</a>
-      <a href="{{ url_for('flujo_g') }}" class="btn btn-outline-secondary mb-2">Flujo G</a>
-      <a href="{{ url_for('flujo_h') }}" class="btn btn-outline-secondary mb-2">Flujo H</a>
-      <a href="{{ url_for('flujo_i') }}" class="btn btn-outline-secondary mb-2">Flujo I</a>
-    </div>
+  <div class="btn-group flex-wrap" role="group" aria-label="Navegación Flujos">
+    <a href="{{ url_for('flujo_a') }}" class="btn btn-outline-secondary mb-2">
+      Ajuste de medida
+    </a>
+    <a href="{{ url_for('flujo_b') }}" class="btn btn-outline-secondary mb-2">
+      Saca Tubing
+    </a>
+    <a href="{{ url_for('flujo_c') }}" class="btn btn-outline-secondary mb-2">
+      Baja Tubing
+    </a>
+    <a href="{{ url_for('flujo_d') }}" class="btn btn-outline-secondary mb-2">
+      Profundiza
+    </a>
+    <a href="{{ url_for('flujo_e') }}" class="btn btn-outline-secondary mb-2">
+      Baja Varilla
+    </a>
+    <a href="{{ url_for('flujo_f') }}" class="btn btn-outline-secondary mb-2">
+      Abandono/Recupero
+    </a>
+    <a href="{{ url_for('flujo_g') }}" class="btn btn-outline-secondary mb-2">
+      WO
+    </a>
+    <a href="{{ url_for('flujo_h') }}" class="btn btn-outline-secondary mb-2">
+      Agregación
+    </a>
+    <a href="{{ url_for('flujo_i') }}" class="btn btn-outline-secondary mb-2">
+      Válvulas Producción
+    </a>
   </div>
+</div>
 
   <!-- Tablas siempre visibles -->
   {% for flow, df in materiales_finales %}
