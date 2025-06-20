@@ -1,13 +1,59 @@
 {% extends "base.html" %}
 
-{% block title %}Inicio - App Flujo A{% endblock %}
+{% block title %}Bienvenido - Selección de materiales BM{% endblock %}
 
 {% block content %}
-<div class="text-center">
-  <h1 class="mb-4">Bienvenido - Seleccion materiales BM</h1>
-  <p>
-    <a href="{{ url_for('flujo_a') }}" class="btn btn-primary">Iniciar Flujo A: Ajuste de medida</a>
-  </p>
+<div class="container text-center mt-5">
+  <h1 class="mb-4">Bienvenido – Selección de materiales BM</h1>
+
+  <!-- Botón principal para Flujo A -->
+  <a href="{{ url_for('flujo_a') }}" class="btn btn-primary btn-lg mb-4">
+    Iniciar Flujo A: Ajuste de medida
+  </a>
+
+  <!-- Botones secundarios para el resto de flujos -->
+  <div class="row justify-content-center g-3">
+    <div class="col-auto">
+      <a href="{{ url_for('flujo_b') }}" class="btn btn-secondary">
+        Flujo B: Saca Tubing
+      </a>
+    </div>
+    <div class="col-auto">
+      <a href="{{ url_for('flujo_c') }}" class="btn btn-success">
+        Flujo C: Baja Tubing
+      </a>
+    </div>
+    <div class="col-auto">
+      <a href="{{ url_for('flujo_d') }}" class="btn btn-danger">
+        Flujo D: Profundiza
+      </a>
+    </div>
+    <div class="col-auto">
+      <a href="{{ url_for('flujo_e') }}" class="btn btn-warning">
+        Flujo E: Baja Varilla
+      </a>
+    </div>
+    <div class="col-auto">
+      <a href="{{ url_for('flujo_f') }}" class="btn btn-info">
+        Flujo F: Abandono/Recupero
+      </a>
+    </div>
+    <div class="col-auto">
+      <a href="{{ url_for('flujo_g') }}" class="btn btn-dark">
+        Flujo G: WO
+      </a>
+    </div>
+    <div class="col-auto">
+      <a href="{{ url_for('flujo_h') }}" class="btn btn-outline-primary">
+        Flujo H: Agregación
+      </a>
+    </div>
+    <div class="col-auto">
+      <a href="{{ url_for('flujo_i') }}" class="btn btn-outline-secondary">
+        Flujo I: Válvulas
+      </a>
+    </div>
+  </div>
 </div>
 {% endblock %}
 
