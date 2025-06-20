@@ -6,13 +6,19 @@
 <div class="container text-center mt-5">
   <h1 class="mb-4">Bienvenido – Selección de materiales BM</h1>
 
-  <!-- Botón principal para Flujo A -->
+  <!-- Botón principal renombrado -->
   <a href="{{ url_for('flujo_a') }}" class="btn btn-primary btn-lg mb-4">
-    Iniciar Flujo A: Ajuste de medida
+    COMENZAR FLUJO DE SELECCIÓN
   </a>
 
-  <!-- Botones secundarios para el resto de flujos -->
+  <!-- Fila de botones para acceder directamente a cada flujo -->
   <div class="row justify-content-center g-3">
+    <!-- Flujo A duplicado en la fila secundaria -->
+    <div class="col-auto">
+      <a href="{{ url_for('flujo_a') }}" class="btn btn-secondary">
+        Flujo A: Ajuste de medida
+      </a>
+    </div>
     <div class="col-auto">
       <a href="{{ url_for('flujo_b') }}" class="btn btn-secondary">
         Flujo B: Saca Tubing
@@ -56,5 +62,6 @@
   </div>
 </div>
 {% endblock %}
+
 
 
