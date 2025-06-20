@@ -1,58 +1,28 @@
 {% extends "base.html" %}
 
-{% block title %}Bienvenido - Selección de materiales BM{% endblock %}
+{% block title %}Flujo A: Ajuste de medida{% endblock %}
 
 {% block content %}
-<div class="container mt-5 text-center">
-  <h1 class="mb-4">Bienvenido – Selección de materiales BM</h1>
-  <div class="row gy-3 justify-content-center">
-    <div class="col-auto">
-      <a href="{{ url_for('flujo_a') }}" class="btn btn-primary">
-        Flujo A: Ajuste de medida
-      </a>
-    </div>
-    <div class="col-auto">
-      <a href="{{ url_for('flujo_b') }}" class="btn btn-secondary">
-        Flujo B: Saca Tubing
-      </a>
-    </div>
-    <div class="col-auto">
-      <a href="{{ url_for('flujo_c') }}" class="btn btn-success">
-        Flujo C: Baja Tubing
-      </a>
-    </div>
-    <div class="col-auto">
-      <a href="{{ url_for('flujo_d') }}" class="btn btn-danger">
-        Flujo D: Profundiza
-      </a>
-    </div>
-    <div class="col-auto">
-      <a href="{{ url_for('flujo_e') }}" class="btn btn-warning">
-        Flujo E: Baja Varilla
-      </a>
-    </div>
-    <div class="col-auto">
-      <a href="{{ url_for('flujo_f') }}" class="btn btn-info">
-        Flujo F: Abandono/Recupero
-      </a>
-    </div>
-    <div class="col-auto">
-      <a href="{{ url_for('flujo_g') }}" class="btn btn-dark">
-        Flujo G: WO
-      </a>
-    </div>
-    <div class="col-auto">
-      <a href="{{ url_for('flujo_h') }}" class="btn btn-outline-primary">
-        Flujo H: Material de agregación
-      </a>
-    </div>
-    <div class="col-auto">
-      <a href="{{ url_for('flujo_i') }}" class="btn btn-outline-secondary">
-        Flujo I: Válvulas de puente
-      </a>
-    </div>
+<div class="row justify-content-center">
+  <div class="col-md-8">
+    <h1 class="text-center mb-4">Flujo A: Ajuste de medida</h1>
+    <form method="POST" action="{{ url_for('flujo_a_decidir') }}">
+      <div class="mb-3">
+        <label class="form-label">¿Ajuste de medida?</label>
+        <div class="form-check">
+          <input class="form-check-input" type="radio" name="ajuste" id="ajusteSi" value="SI" required>
+          <label class="form-check-label" for="ajusteSi">SI</label>
+        </div>
+        <div class="form-check">
+          <input class="form-check-input" type="radio" name="ajuste" id="ajusteNo" value="NO">
+          <label class="form-check-label" for="ajusteNo">NO</label>
+        </div>
+      </div>
+      <button type="submit" class="btn btn-primary">Enviar</button>
+    </form>
   </div>
 </div>
 {% endblock %}
+
 
 
